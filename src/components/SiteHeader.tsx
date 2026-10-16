@@ -1,5 +1,5 @@
 import Link from "next/link";
-import SwellMark, { Wordmark } from "@/components/SwellMark";
+import SwellLogo from "@/components/SwellMark";
 import NavLinks from "@/components/NavLinks";
 
 /**
@@ -13,9 +13,8 @@ export default function SiteHeader({ seasonsLabel }: { seasonsLabel: string }) {
   return (
     <header className="z-50 border-b border-chrome-hairline bg-chrome/95 text-chrome-fg backdrop-blur md:sticky md:top-0">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-1 px-4 py-2 sm:px-6">
-        <Link href="/" className="inline-flex min-h-11 items-center gap-2.5" aria-label="Swell Analytics home">
-          <SwellMark />
-          <Wordmark />
+        <Link href="/" className="inline-flex min-h-11 items-center" aria-label="Swell Analytics home">
+          <SwellLogo id="logo-header" />
         </Link>
         <nav aria-label="Primary" className="order-last w-full overflow-x-auto md:order-none md:w-auto">
           <NavLinks />

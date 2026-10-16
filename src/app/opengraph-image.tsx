@@ -1,5 +1,20 @@
 import { ImageResponse } from "next/og";
 import { db } from "@/lib/db/server";
+import {
+  ANALYTICS_PATH,
+  ANALYTICS_X,
+  LOCKUP_BOTTOM,
+  LOCKUP_TOP,
+  LOCKUP_WIDTH,
+  MARK_CREST,
+  MARK_DATUM,
+  MARK_DATUM_Y,
+  MARK_SCALE,
+  MARK_TROUGH,
+  MARK_X,
+  SWELL_PATH,
+  SWELL_X,
+} from "@/components/logoGeometry";
 
 /*
  * The link preview card (og:image) for every route that does not set its
@@ -21,6 +36,23 @@ const FG = "#eef1f2";
 const FG_SUBTLE = "#a1acb2";
 const ACCENT = "#f2b134";
 const HAIRLINE = "#384349";
+const BELOW = "#6aaedb";
+
+/* The Datum Crest lockup as a standalone svg. The renderer cannot use the
+   site fonts, so the words come from the outlines in logoGeometry. */
+const LOGO_WIDTH = 600;
+const LOGO_HEIGHT = Math.round((LOGO_WIDTH * (LOCKUP_BOTTOM - LOCKUP_TOP)) / LOCKUP_WIDTH);
+const LOGO_SVG =
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${LOCKUP_TOP} ${LOCKUP_WIDTH} ${LOCKUP_BOTTOM - LOCKUP_TOP}">` +
+  `<defs><clipPath id="u"><rect width="64" height="${MARK_DATUM_Y}"/></clipPath>` +
+  `<clipPath id="l"><rect y="${MARK_DATUM_Y}" width="64" height="${64 - MARK_DATUM_Y}"/></clipPath></defs>` +
+  `<g transform="translate(${MARK_X} ${-MARK_DATUM_Y * MARK_SCALE}) scale(${MARK_SCALE})">` +
+  `<path d="${MARK_DATUM}" stroke="${FG_SUBTLE}" stroke-width="1.6"/>` +
+  `<path clip-path="url(#l)" d="${MARK_TROUGH}" stroke="${BELOW}" stroke-width="5" fill="none"/>` +
+  `<path clip-path="url(#u)" d="${MARK_CREST}" stroke="${ACCENT}" stroke-width="5" fill="none"/></g>` +
+  `<path transform="translate(${SWELL_X} 0)" fill="${FG}" d="${SWELL_PATH}"/>` +
+  `<path transform="translate(${ANALYTICS_X} 0)" fill="${FG_SUBTLE}" d="${ANALYTICS_PATH}"/></svg>`;
+const LOGO_SRC = `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG).toString("base64")}`;
 
 async function count(table: "heats" | "waves" | "surfers"): Promise<number | null> {
   const { count: n, error } = await db.from(table).select("*", { count: "exact", head: true });
@@ -66,8 +98,8 @@ export default async function OpengraphImage() {
           <div style={{ fontSize: 28, letterSpacing: 4, color: ACCENT, textTransform: "uppercase" }}>
             {`Men's Championship Tour · ${seasons}`}
           </div>
-          <div style={{ fontSize: 96, fontWeight: 700, marginTop: 16 }}>Swell Analytics</div>
-          <div style={{ fontSize: 36, color: FG_SUBTLE, marginTop: 12, maxWidth: 900 }}>
+          <img src={LOGO_SRC} width={LOGO_WIDTH} height={LOGO_HEIGHT} alt="Swell Analytics" style={{ marginTop: 24 }} />
+          <div style={{ fontSize: 36, color: FG_SUBTLE, marginTop: 20, maxWidth: 1040 }}>
             Every heat scored against what the round expects. Rankings, surfer records and
             head-to-head comparisons.
           </div>

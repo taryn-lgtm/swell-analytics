@@ -1,5 +1,5 @@
 import Link from "next/link";
-import SwellMark, { Wordmark } from "@/components/SwellMark";
+import SwellLogo from "@/components/SwellMark";
 
 /**
  * The seasons line is the coverage statement the definition of beta
@@ -12,9 +12,8 @@ export default function SiteFooter({ seasonsLabel }: { seasonsLabel: string }) {
     <footer className="mt-16 border-t border-hairline bg-paper-sunken">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 text-body-sm sm:px-6 md:grid-cols-[2fr_1fr_1fr]">
         <div>
-          <Link href="/" className="inline-flex min-h-11 items-center gap-2.5 text-fg" aria-label="Swell Analytics home">
-            <SwellMark />
-            <Wordmark />
+          <Link href="/" className="inline-flex min-h-11 items-center text-fg" aria-label="Swell Analytics home">
+            <SwellLogo id="logo-footer" />
           </Link>
           <p className="mt-3 max-w-[42ch] text-fg-subtle">
             An independent read of the men&apos;s Championship Tour: every heat measured against
