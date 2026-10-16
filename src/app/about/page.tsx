@@ -70,11 +70,11 @@ export default async function AboutPage() {
     <Container className="py-8 sm:py-10">
       {/* ---- Masthead --------------------------------------------------- */}
       <div className="border-b border-hairline pb-6">
-        <p className="text-caption font-semibold uppercase tracking-[0.18em] text-structure">
+        <p className="text-caption tracking-[0.06em] text-fg-subtle">
           Men&apos;s Championship Tour · {seasonsLabel || "no seasons loaded"}
         </p>
-        <h1 className="mt-1 font-display text-display-lg font-bold tracking-tight text-fg">
-          About
+        <h1 className="mt-4 font-serif text-[clamp(2.6rem,7vw,5.5rem)] font-medium italic leading-[0.95] tracking-[-0.02em] text-fg">
+          How the numbers are made.
         </h1>
         <p className="mt-3 max-w-3xl text-body text-fg-muted">
           This site holds every heat of the Men&apos;s Championship Tour seasons named above,
@@ -107,7 +107,7 @@ export default async function AboutPage() {
         <div className="grid gap-4 lg:grid-cols-3">
           {/* (1) Which seasons */}
           <Card className="p-5">
-            <p className="text-caption font-semibold uppercase tracking-[0.18em] text-structure">
+            <p className="text-caption tracking-[0.06em] text-fg-subtle">
               One · coverage
             </p>
             <h3 className="mt-1 font-display text-heading font-bold text-fg">
@@ -132,7 +132,7 @@ export default async function AboutPage() {
 
           {/* (2) The threshold */}
           <Card className="p-5">
-            <p className="text-caption font-semibold uppercase tracking-[0.18em] text-structure">
+            <p className="text-caption tracking-[0.06em] text-fg-subtle">
               Two · the threshold
             </p>
             <h3 className="mt-1 font-display text-heading font-bold text-fg">
@@ -161,7 +161,7 @@ export default async function AboutPage() {
 
           {/* (3) The prior */}
           <Card className="p-5">
-            <p className="text-caption font-semibold uppercase tracking-[0.18em] text-structure">
+            <p className="text-caption tracking-[0.06em] text-fg-subtle">
               Three · the prior
             </p>
             <h3 className="mt-1 font-display text-heading font-bold text-fg">

@@ -27,7 +27,7 @@ export default function ProvenancePanel({
 }) {
   return (
     <div className="mt-3 border-t border-hairline pt-2 text-caption leading-relaxed text-fg-subtle">
-      <span className="font-semibold uppercase tracking-[0.14em]">{label}</span>{" "}
+      <span className="font-semibold tracking-[0.04em]">{label}</span>{" "}
       {children}
     </div>
   );

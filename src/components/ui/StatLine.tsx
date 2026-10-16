@@ -1,6 +1,6 @@
 /**
  * THE signature motif: a measured readout, as on an instrument face.
- * Small uppercase label · mono figure · optional unit · optional delta ·
+ * Small label · mono figure · optional unit · optional delta ·
  * optional thin measure bar. The rankings points cell, the two-wave heat
  * scoreline and the surfer-profile header are all variations of this
  * grammar — build those from StatLine/MeasureBar, don't reinvent.
@@ -73,7 +73,7 @@ export default function StatLine({
   const alignCls = align === "end" ? "items-end text-right" : "items-start text-left";
   return (
     <div className={`flex min-w-0 flex-col gap-1 ${alignCls}`}>
-      <span className="text-caption font-medium uppercase tracking-[0.14em] text-fg-subtle">
+      <span className="text-caption font-medium tracking-[0.04em] text-fg-subtle">
         {label}
       </span>
       <span className="flex items-baseline gap-1.5">
@@ -85,7 +85,7 @@ export default function StatLine({
           {value}
         </span>
         {unit && (
-          <span className="text-caption font-medium uppercase tracking-wide text-fg-subtle">
+          <span className="text-caption font-medium text-fg-subtle">
             {unit}
           </span>
         )}

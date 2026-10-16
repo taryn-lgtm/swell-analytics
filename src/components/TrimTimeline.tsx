@@ -134,7 +134,7 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
           style={{ width: `${(L / W) * 100}%`, marginRight: `-${(L / W) * 100}%` }}
           fontFamily="var(--font-mono)"
         >
-          <rect x={0} y={0} width={L} height={TOTAL_H} fill="var(--color-paper-raised)" />
+          <rect x={0} y={0} width={L} height={TOTAL_H} fill="var(--color-paper)" />
           {ticks.map((v) => (
             <text
               key={`yl-${v}`}
@@ -234,11 +234,11 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
             </g>
           ))}
 
-          <path d={area} fill="var(--color-bar-fill)" opacity={0.07} />
+          <path d={area} fill="var(--color-above)" opacity={0.1} />
           <path
             d={line}
             fill="none"
-            stroke="var(--color-bar-fill)"
+            stroke="var(--color-fg)"
             strokeWidth={2}
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -248,8 +248,8 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
             cx={x(pts.length - 1)}
             cy={y(lastTrim)}
             r={4.5}
-            fill="var(--color-accent-strong)"
-            stroke="var(--color-paper-raised)"
+            fill="var(--color-accent)"
+            stroke="var(--color-paper)"
             strokeWidth={2}
           />
           <text
@@ -296,7 +296,7 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
                 x2={x(i).toFixed(1)}
                 y1={ry(0).toFixed(1)}
                 y2={ry(v).toFixed(1)}
-                stroke={v >= 0 ? "var(--color-bar-fill)" : "var(--color-fg-subtle)"}
+                stroke={v >= 0 ? "var(--color-above)" : "var(--color-below)"}
                 strokeWidth={2}
                 strokeLinecap="round"
                 opacity={0.62}
@@ -331,14 +331,14 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
 
       <figcaption className="mt-3 grid gap-x-8 gap-y-2 text-caption text-fg-subtle sm:grid-cols-2">
         <p>
-          <span className="font-semibold uppercase tracking-[0.14em]">Reading it</span> — the line
+          <span className="font-semibold tracking-[0.04em]">Reading it</span> — the line
           is Trim after each heat: points per heat above or below what that round usually yields.
           It starts at the prior, <span className="figures">0.000</span>, and moves by a decayed
           share of each heat&apos;s deviation. The bars below are those deviations, one per heat,
           on their own scale. Neither panel is a prediction.
         </p>
         <p>
-          <span className="font-semibold uppercase tracking-[0.14em]">
+          <span className="font-semibold tracking-[0.04em]">
             {best === worst ? "The heat" : "Extremes"}
           </span>{" "}
           {best === worst ? (

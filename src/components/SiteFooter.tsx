@@ -1,5 +1,5 @@
 import Link from "next/link";
-import SwellMark from "@/components/SwellMark";
+import SwellMark, { Wordmark } from "@/components/SwellMark";
 
 /**
  * The seasons line is the coverage statement the definition of beta
@@ -12,9 +12,9 @@ export default function SiteFooter({ seasonsLabel }: { seasonsLabel: string }) {
     <footer className="mt-16 border-t border-hairline bg-paper-sunken">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 text-body-sm sm:px-6 md:grid-cols-[2fr_1fr_1fr]">
         <div>
-          <Link href="/" className="inline-flex min-h-11 items-center gap-2.5 text-fg" aria-label="WSL Analytics home">
+          <Link href="/" className="inline-flex min-h-11 items-center gap-2.5 text-fg" aria-label="Swell Analytics home">
             <SwellMark />
-            <span className="font-serif text-[1.45rem] font-medium italic leading-none">WSL Analytics</span>
+            <Wordmark />
           </Link>
           <p className="mt-3 max-w-[42ch] text-fg-subtle">
             An independent read of the men&apos;s Championship Tour: every heat measured against
@@ -22,7 +22,7 @@ export default function SiteFooter({ seasonsLabel }: { seasonsLabel: string }) {
           </p>
         </div>
         <div>
-          <h2 className="mb-2 text-caption font-semibold uppercase tracking-[0.12em] text-fg-subtle">Read</h2>
+          <h2 className="mb-2 text-caption font-semibold tracking-[0.04em] text-fg-subtle">Read</h2>
           <ul>
             <li><Link href="/" className={linkClass}>Home</Link></li>
             <li><Link href="/rankings" className={linkClass}>Rankings</Link></li>
@@ -31,7 +31,7 @@ export default function SiteFooter({ seasonsLabel }: { seasonsLabel: string }) {
           </ul>
         </div>
         <div>
-          <h2 className="mb-2 text-caption font-semibold uppercase tracking-[0.12em] text-fg-subtle">Data</h2>
+          <h2 className="mb-2 text-caption font-semibold tracking-[0.04em] text-fg-subtle">Data</h2>
           <ul className="space-y-1.5 text-fg-muted">
             <li>
               {seasonsLabel

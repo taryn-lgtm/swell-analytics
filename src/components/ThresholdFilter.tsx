@@ -28,7 +28,7 @@ export default function ThresholdFilter({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-body-sm">
-      <span className="text-caption font-semibold uppercase tracking-[0.14em] text-fg-subtle">
+      <span className="text-caption font-semibold tracking-[0.04em] text-fg-subtle">
         Minimum heats
       </span>
       <nav aria-label="Minimum heats" className="flex">

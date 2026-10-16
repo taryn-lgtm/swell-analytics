@@ -25,7 +25,7 @@ import { getTrimCurrent, type TrimCurrentRow } from "@/lib/queries/home";
  *     to be "best two to 20.00".
  *   - trap 20: venue is `heats.venue_id`. `events.venue_id` is nominal and
  *     wrong for 34 heats across three events.
- *   - trap 23: conditions (700 heats) and venue (712) are DIFFERENT
+ *   - trap 23: conditions and venue are DIFFERENT
  *     populations. The extra twelve are Abu Dhabi's. Each figure states
  *     the one it was computed over.
  *
@@ -409,6 +409,27 @@ function emptyProfile(
     titleYears,
   };
 }
+
+/**
+ * Database-wide coverage for the condition-splits footnote: how many heats
+ * carry published conditions and a venue. Counted, never typed: the page
+ * said "700 of 800" as a literal until 16 October 2026, after the October
+ * popup seeds had taken conditions to 770 (trap 21).
+ */
+export const getHeatCoverage = cache(
+  async (): Promise<{ heats: number; withConditions: number; withVenue: number }> => {
+    const [all, cond, venue] = await Promise.all([
+      db.from("heats").select("id", { count: "exact", head: true }),
+      db.from("heats").select("id", { count: "exact", head: true }).not("wind_conditions", "is", null),
+      db.from("heats").select("id", { count: "exact", head: true }).not("venue_id", "is", null),
+    ]);
+    for (const [label, r] of [["heats", all], ["conditions", cond], ["venue", venue]] as const) {
+      if (r.error) throw new Error(`heat coverage (${label}) query failed: ${r.error.message}`);
+      if (r.count == null) throw new Error(`heat coverage (${label}) returned no count`);
+    }
+    return { heats: all.count!, withConditions: cond.count!, withVenue: venue.count! };
+  }
+);
 
 /** Every surfer slug, for generateStaticParams. All 73 carry one. */
 export const getAllSurferSlugs = cache(async (): Promise<string[]> => {

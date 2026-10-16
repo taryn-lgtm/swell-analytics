@@ -56,7 +56,7 @@ export default function HeatLog({ heats, minHeats }: { heats: SurferHeat[]; minH
               {h.eventName}
             </Link>
             {h.eventKind === "wsl_finals" && (
-              <span className="ml-1.5 text-caption uppercase tracking-[0.1em] text-structure">
+              <span className="ml-1.5 text-caption tracking-[0.04em] text-structure">
                 Finals
               </span>
             )}

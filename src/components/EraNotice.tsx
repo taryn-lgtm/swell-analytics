@@ -8,7 +8,7 @@ export default function EraNotice({ seasonYear }: { seasonYear: number }) {
   const era = pointsEra(seasonYear);
   return (
     <p className="flex items-center gap-2 text-caption text-fg-subtle">
-      <span className="figures border border-hairline-strong px-1 py-px font-medium uppercase tracking-[0.08em]">
+      <span className="figures border border-hairline-strong px-1 py-px font-medium tracking-[0.08em]">
         {era} era
       </span>
       {ERA_NOTES[era]}

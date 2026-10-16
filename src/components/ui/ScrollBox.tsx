@@ -63,7 +63,7 @@ export default function ScrollBox({
       <p
         aria-hidden
         data-scroll-cue={cue ? "visible" : "hidden"}
-        className={`mb-1.5 text-caption uppercase tracking-[0.1em] text-fg-subtle ${bare ? "px-3 pt-2" : ""} ${
+        className={`mb-1.5 text-caption tracking-[0.04em] text-fg-subtle ${bare ? "px-3 pt-2" : ""} ${
           more.right ? "text-right" : "text-left"
         } ${cue ? "" : "invisible"}`}
       >
@@ -75,7 +75,7 @@ export default function ScrollBox({
         tabIndex={0}
         role="region"
         aria-label={label}
-        className={`overflow-x-auto ${bare ? "" : "border border-table-hairline bg-paper-raised"} ${className}`}
+        className={`overflow-x-auto ${bare ? "" : "border-t border-fg"} ${className}`}
       >
         {children}
       </div>

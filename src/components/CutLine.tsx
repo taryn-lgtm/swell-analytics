@@ -19,7 +19,7 @@ export default function CutLine({
         colSpan={colSpan}
         className="border-y border-dashed border-accent-strong bg-accent-soft/50 px-2.5 py-1"
       >
-        <span className="text-caption font-bold uppercase tracking-[0.18em] text-accent-strong">
+        <span className="text-caption font-bold tracking-[0.04em] text-accent-strong">
           Mid-season cut — top {cutLine} retain their seats
           {afterEvent ? ` after event ${afterEvent}` : ""}
         </span>

@@ -16,7 +16,7 @@ function Readout({
 }) {
   return (
     <span className="flex flex-col gap-0.5">
-      <span className="text-caption font-medium uppercase tracking-[0.14em] text-fg-subtle">
+      <span className="text-caption font-medium tracking-[0.04em] text-fg-subtle">
         {label}
       </span>
       <span
@@ -57,7 +57,7 @@ export default function HeatScoreline({
     return (
       <span className="flex items-end gap-3" title="Did not surf">
         <Readout valueCls={valueCls} label="Heat total" value={EM_DASH} strong />
-        <span className="pb-0.5 text-caption font-medium uppercase tracking-wide text-fg-subtle">
+        <span className="pb-0.5 text-caption font-medium text-fg-subtle">
           DNS
         </span>
       </span>

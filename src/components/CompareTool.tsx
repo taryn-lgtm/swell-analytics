@@ -118,6 +118,12 @@ export function CompareView({
 
   const eventById = useMemo(() => new Map(data.events.map((e) => [e.id, e])), [data.events]);
   const venueById = useMemo(() => new Map(data.venues.map((v) => [v.id, v.name])), [data.venues]);
+  // Counted from the shipped rows, never typed in (trap 21).
+  const venueCoverage = useMemo(() => {
+    const all = new Set(data.heats.map((h) => h.h));
+    const none = new Set(data.heats.filter((h) => h.v == null).map((h) => h.h));
+    return { heats: all.size, noVenue: none.size };
+  }, [data.heats]);
 
   if (!a || !b) {
     return <EmptyState title="Pick two surfers" detail="The surfer list came back empty." />;
@@ -336,8 +342,10 @@ export function CompareView({
         )}
         <ProvenancePanel>
           venues where both surfers have at least <span className="figures">{VENUE_MIN_HEATS}</span>{" "}
-          heats. The venue is where each heat was actually surfed, which differs from the event&apos;s
-          named venue at three events. 88 of 800 heats have no recorded venue and are left out here.
+          heats. The venue is where each heat was actually surfed, which can differ from the
+          event&apos;s named venue. <span className="figures">{venueCoverage.noVenue}</span> of{" "}
+          <span className="figures">{venueCoverage.heats}</span> heats have no recorded venue and are
+          left out here.
         </ProvenancePanel>
       </section>
 

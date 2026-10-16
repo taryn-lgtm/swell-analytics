@@ -43,9 +43,10 @@ const plexMono = localFont({
 /* The description names no season range: the seasons held are read from the
    database at render time and stated in the chrome. */
 export const metadata: Metadata = {
+  metadataBase: new URL("https://wsl-analytics.vercel.app"),
   title: {
-    default: "WSL Analytics",
-    template: "%s · WSL Analytics",
+    default: "Swell Analytics",
+    template: "%s · Swell Analytics",
   },
   description:
     "Men's Championship Tour analytics — Trim, the score-for-the-conditions rating, with every figure traced to a published heat.",

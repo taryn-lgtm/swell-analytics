@@ -13,11 +13,11 @@ export default function ReadingTheNumbers() {
   return (
     <section
       aria-labelledby="reading-the-numbers"
-      className="border border-hairline bg-paper-raised px-4 py-4 sm:px-5 sm:py-5"
+      className="border-t border-fg pt-4"
     >
       <p
         id="reading-the-numbers"
-        className="text-caption font-semibold uppercase tracking-[0.18em] text-structure"
+        className="text-caption tracking-[0.06em] text-fg-subtle"
       >
         How to read the numbers
       </p>

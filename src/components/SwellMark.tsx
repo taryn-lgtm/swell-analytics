@@ -8,3 +8,13 @@ export default function SwellMark({ className = "" }: { className?: string }) {
     </svg>
   );
 }
+
+/** The wordmark: "Swell" in Bodoni italic, "Analytics" set small in the text face. */
+export function Wordmark() {
+  return (
+    <span className="inline-flex items-baseline gap-1.5 leading-none">
+      <span className="font-serif text-[1.55rem] font-medium italic tracking-[-0.01em]">Swell</span>
+      <span className="text-caption font-medium tracking-[0.08em] text-chrome-fg-muted">Analytics</span>
+    </span>
+  );
+}

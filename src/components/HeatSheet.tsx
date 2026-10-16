@@ -55,7 +55,7 @@ export default function HeatSheet({ rounds }: { rounds: RoundData[] }) {
         <section key={round.roundKey} aria-label={round.roundName}>
           <h3 className="mb-3 border-t-2 border-fg pt-1.5 font-display text-display-sm font-bold tracking-tight text-fg">
             {round.roundName}
-            <span className="figures ml-2 text-caption font-medium uppercase tracking-[0.14em] text-fg-subtle">
+            <span className="figures ml-2 text-caption font-medium tracking-[0.04em] text-fg-subtle">
               {round.heats.length} {round.heats.length === 1 ? "heat" : "heats"}
             </span>
           </h3>
@@ -64,12 +64,12 @@ export default function HeatSheet({ rounds }: { rounds: RoundData[] }) {
               <table
                 key={heat.heatNumber ?? i}
                 data-heat
-                className="w-full border-collapse border border-table-hairline bg-paper-raised text-stat"
+                className="w-full border-collapse border-t border-fg text-stat"
               >
-                <caption className="border-b border-table-hairline bg-table-head px-2.5 py-1.5 text-left">
+                <caption className="border-b border-table-hairline px-2.5 py-1.5 text-left">
                   <span
                     data-v="heat-label"
-                    className="figures block text-caption font-semibold uppercase tracking-[0.14em] text-fg-muted"
+                    className="figures block text-caption font-semibold tracking-[0.04em] text-fg-muted"
                   >
                     {heat.heatNumber != null ? `Heat ${String(heat.heatNumber).padStart(2, "0")}` : "Heat"}
                   </span>

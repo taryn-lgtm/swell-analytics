@@ -11,6 +11,8 @@ import ProvenancePanel, { ProvenanceInline } from "@/components/Provenance";
 import ThresholdFilter from "@/components/ThresholdFilter";
 import ReadingTheNumbers from "@/components/ReadingTheNumbers";
 import TrimLeaderboard, { type TrimLeaderboardRow } from "@/components/TrimLeaderboard";
+import Ridgeline from "@/components/Ridgeline";
+import { getRidgeSeries } from "@/lib/queries/ridgeline";
 import { formatScore } from "@/lib/format";
 import { eventSlug } from "@/lib/slug";
 import { TRIM_MIN_HEATS, formatTrim, formatTrimDelta, formatPriorWeight, num } from "@/lib/trim";
@@ -61,9 +63,14 @@ export default async function HomeView({ showingAll }: { showingAll: boolean }) 
     getTrimModelRun(),
     getLatestEvent(),
   ]);
-  const movers = latestEvent
-    ? await getMoversAtEvent(latestEvent.seasonYear, latestEvent.eventNumber)
-    : [];
+  const rated = trimCurrent.filter((r) => r.nHeats >= TRIM_MIN_HEATS);
+  const [movers, ridges] = await Promise.all([
+    latestEvent ? getMoversAtEvent(latestEvent.seasonYear, latestEvent.eventNumber) : Promise.resolve([]),
+    getRidgeSeries(rated.map((r) => r.surferId)),
+  ]);
+  const gapsById = new Map(ridges.map((r) => [r.surferId, r.gaps]));
+  const ridgeRows = rated.map((r) => ({ slug: r.slug, name: r.fullName, trim: r.trim, gaps: gapsById.get(r.surferId) ?? [] }));
+  const ratedHeats = rated.reduce((a, r) => a + r.nHeats, 0);
 
   const championYearBySurfer = new Map<number, number>();
   for (const s of seasons) {
@@ -97,17 +104,47 @@ export default async function HomeView({ showingAll }: { showingAll: boolean }) 
 
   return (
     <Container className="py-8 sm:py-10">
+      {/* ---- Hero: the ridgeline ------------------------------------- */}
+      <header className="pb-12">
+        <p className="figures text-caption text-fg-subtle">
+          {rated.length} rated surfers · {ratedHeats.toLocaleString("en-GB")} heats surfed between them · Men&apos;s CT{" "}
+          {seasonsLabel || "no seasons loaded"}
+        </p>
+        <h1 className="mt-5 font-serif text-[clamp(3rem,9vw,7.5rem)] font-medium italic leading-[0.92] tracking-[-0.02em] text-fg">
+          Who is surfing
+          <br />
+          <span className="text-accent">above the line.</span>
+        </h1>
+        <p className="mt-6 max-w-[62ch] text-[1.08rem] leading-relaxed text-fg-muted">
+          Every line is one surfer&apos;s heats, in order. <b className="font-semibold text-fg">Sand rises</b> where
+          he scored more than Datum expected for that round, <b className="font-semibold text-fg">sea dips</b>{" "}
+          where
+          he scored less. They&apos;re stacked by Trim, the running measure of how far above or below that line
+          each surfer has been lately. Hover a line to lift it out.
+        </p>
+        {ridgeRows.length > 0 && (
+          <div className="mt-10">
+            <Ridgeline rows={ridgeRows} />
+            <p className="mt-4 text-caption text-fg-subtle">
+              Surfers with {TRIM_MIN_HEATS} or more rated heats. Each heat is its gap to Datum from{" "}
+              <code className="figures">trim.residual</code>, lightly smoothed over neighbouring heats so a
+              line reads as a line; the Trim figure is unsmoothed.
+            </p>
+          </div>
+        )}
+      </header>
+
       {/* ---- How to read the numbers --------------------------------- */}
       <ReadingTheNumbers />
 
-      {/* ---- Masthead ------------------------------------------------- */}
-      <div className="mt-8 border-b border-hairline pb-6">
-        <p className="text-caption font-semibold uppercase tracking-[0.18em] text-structure">
+      {/* ---- The ratings ---------------------------------------------- */}
+      <div className="mt-12 border-t border-fg pt-3">
+        <p className="text-caption tracking-[0.06em] text-fg-subtle">
           Men&apos;s Championship Tour · {seasonsLabel || "no seasons loaded"}
         </p>
-        <h1 className="mt-1 font-display text-display-lg font-bold tracking-tight text-fg">
-          Trim
-        </h1>
+        <h2 className="mt-1 font-display text-[clamp(1.4rem,2.6vw,2rem)] font-semibold leading-[1.1] tracking-[-0.02em] text-fg">
+          Trim, surfer by surfer
+        </h2>
         <p className="mt-3 max-w-3xl text-body text-fg-muted">
           How far each surfer beats what Datum expects of the round they are surfing,
           weighted so recent heats count more, accumulated heat by heat. The unit is
@@ -260,7 +297,7 @@ function MoversList({ movers, event }: { movers: Mover[]; event: LatestEvent | n
                 </div>
                 <div className="mt-1 h-[3px] w-full bg-bar-track">
                   <div
-                    className={up ? "h-full bg-accent" : "h-full bg-bar-fill"}
+                    className={up ? "h-full bg-above" : "h-full bg-below"}
                     style={{ width: `${width}%` }}
                   />
                 </div>
@@ -273,7 +310,7 @@ function MoversList({ movers, event }: { movers: Mover[]; event: LatestEvent | n
                 </p>
               </div>
               <span
-                className={`figures text-heading font-medium ${up ? "text-accent-strong" : "text-fg-subtle"}`}
+                className={`figures text-heading font-medium ${up ? "text-above" : "text-below"}`}
               >
                 {formatTrimDelta(m.delta)}
               </span>
@@ -305,7 +342,7 @@ function LatestEventPanel({ event }: { event: LatestEvent }) {
     <Card>
       <div className="border-b border-hairline px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="figures text-caption font-medium uppercase tracking-[0.14em] text-fg-subtle">
+          <span className="figures text-caption font-medium tracking-[0.04em] text-fg-subtle">
             {event.kind === "wsl_finals"
               ? `WSL Finals · ${event.seasonYear}`
               : `CT ${event.seasonYear} · Stop ${String(event.eventNumber).padStart(2, "0")}`}
@@ -338,7 +375,7 @@ function LatestEventPanel({ event }: { event: LatestEvent }) {
           <StatLine label="Rounds" value={String(event.roundCount)} size="sm" />
           <StatLine label="Heats" value={String(event.heatCount)} size="sm" />
           <div className="flex min-w-0 flex-col gap-1">
-            <span className="text-caption font-medium uppercase tracking-[0.14em] text-fg-subtle">
+            <span className="text-caption font-medium tracking-[0.04em] text-fg-subtle">
               Winner
             </span>
             {event.publishedWinner ? (
@@ -360,7 +397,7 @@ function LatestEventPanel({ event }: { event: LatestEvent }) {
       <ol className="divide-y divide-table-hairline">
         {event.heats.map((h) => (
           <li key={h.heatId} className="grid gap-x-4 px-4 py-2 sm:grid-cols-[9rem_1fr]">
-            <div className="text-caption font-semibold uppercase tracking-[0.1em] text-fg-muted">
+            <div className="text-caption font-semibold tracking-[0.04em] text-fg-muted">
               {h.roundName ?? `Round ${h.roundOrder}`}
               {h.heatNumber != null && event.heats.filter((x) => x.roundOrder === h.roundOrder).length > 1 && (
                 <span className="figures ml-1 font-medium normal-case tracking-normal text-fg-subtle">

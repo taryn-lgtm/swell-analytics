@@ -29,10 +29,10 @@ export default function EventCard(props: EventCardProps) {
   return (
     <Link
       href={`/events/${eventSlug(props.slug, props.seasonYear)}`}
-      className="group block border border-hairline bg-paper-raised p-4 transition-colors hover:border-fg"
+      className="group block border-t border-hairline-strong py-4 transition-colors hover:border-fg"
     >
       <div className="flex items-center gap-2">
-        <span className="figures text-caption font-medium uppercase tracking-[0.14em] text-fg-subtle">
+        <span className="figures text-caption font-medium tracking-[0.04em] text-fg-subtle">
           {props.eventType === "finals"
             ? "WSL Finals"
             : `CT ${props.seasonYear}${props.eventNumber != null ? ` · Stop ${String(props.eventNumber).padStart(2, "0")}` : ""}`}
@@ -48,7 +48,7 @@ export default function EventCard(props: EventCardProps) {
       <p className="mt-3 border-t border-hairline pt-2 text-body-sm">
         {props.winnerName ? (
           <>
-            <span className="text-caption font-semibold uppercase tracking-[0.1em] text-fg-subtle">
+            <span className="text-caption font-semibold tracking-[0.04em] text-fg-subtle">
               Winner&nbsp;
             </span>
             <span className="font-semibold text-fg">{props.winnerName}</span>

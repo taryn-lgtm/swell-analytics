@@ -30,7 +30,7 @@ export default function FinalFivePanel({
   return (
     <section
       aria-label={`${seasonYear} Final Five`}
-      className="border-y-2 border-fg bg-paper-raised"
+      className="border-t border-fg"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hairline px-4 py-2.5">
         <h3 className="font-display text-display-sm font-bold tracking-tight text-fg">
@@ -44,7 +44,7 @@ export default function FinalFivePanel({
       <ol className="grid divide-y divide-hairline sm:grid-cols-5 sm:divide-x sm:divide-y-0">
         {entries.map((e) => (
           <li key={e.rank} className="flex flex-col gap-1.5 px-4 py-3">
-            <p className="figures text-caption font-medium uppercase tracking-[0.14em] text-fg-subtle">
+            <p className="figures text-caption font-medium tracking-[0.04em] text-fg-subtle">
               Seed {e.rank} · {ordinal(e.rank)} on points
             </p>
             <p className="font-display text-heading font-bold leading-tight text-fg">
@@ -64,7 +64,7 @@ export default function FinalFivePanel({
               >
                 {formatPoints(e.totalPoints)}
               </span>
-              <span className="text-caption font-medium uppercase text-fg-subtle">
+              <span className="text-caption font-medium text-fg-subtle">
                 pts
               </span>
             </p>

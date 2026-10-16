@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Container from "@/components/ui/Container";
-import Card from "@/components/ui/Card";
 import SectionHeader from "@/components/ui/SectionHeader";
 import StatLine, { MeasureBar } from "@/components/ui/StatLine";
 import EmptyState from "@/components/ui/EmptyState";
@@ -63,6 +62,7 @@ export default async function RankingsView({
   const seedByPoints = new Map<number, number>(rowsByPoints.slice(0, 5).map((r, i) => [r.surferId, i + 1]));
   const eventsCounted = data?.countedEvents.length ?? 0;
   const surfersWithTrim = rowsByPoints.filter((r) => r.trim != null).length;
+  const championRow = rowsByPoints.find((r) => r.champion) ?? null;
 
   const href = (year: number, fmt: RankingsFormat) => {
     const q = new URLSearchParams();
@@ -74,14 +74,32 @@ export default async function RankingsView({
   return (
     <Container className="py-8 sm:py-10">
       {/* ---- Masthead ------------------------------------------------- */}
-      <div className="border-b border-hairline pb-6">
-        <p className="text-caption font-semibold uppercase tracking-[0.18em] text-structure">
-          Men&apos;s Championship Tour · {seasonsLabel}
+      <div className="border-b border-hairline pb-8">
+        <p className="figures text-caption text-fg-subtle">
+          {seasonYear} · {eventsCounted} events · {rowsByPoints.length} surfers on the points table · Men&apos;s CT{" "}
+          {seasonsLabel}
         </p>
-        <h1 className="mt-1 font-display text-display-lg font-bold tracking-tight text-fg">
-          Rankings <span className="figures font-medium text-fg">{seasonYear}</span>
+        <h1 className="mt-5 font-serif text-[clamp(2.6rem,7.5vw,6.25rem)] font-medium italic leading-[0.95] tracking-[-0.02em] text-fg">
+          {championRow ? (
+            <>
+              {championRow.fullName}, <span className="text-accent">{seasonYear}</span>
+              <br />
+              <span className="text-accent">world champion.</span>
+            </>
+          ) : (
+            <>
+              Rankings, <span className="text-accent">{seasonYear}.</span>
+            </>
+          )}
         </h1>
-        <p className="mt-3 max-w-3xl text-body text-fg-muted">
+        {championRow && (
+          <p className="mt-5 max-w-[62ch] text-[1.08rem] leading-relaxed text-fg-muted">
+            He finished the regular season {ordinal(championRow.pointsRank)} on points with{" "}
+            <span className="figures text-fg">{formatPoints(championRow.points)}</span>
+            {championRow.finalsPlacing === 1 ? " and then won the WSL Finals, which decide the title." : "."}
+          </p>
+        )}
+        <p className="mt-4 max-w-3xl text-body text-fg-muted">
           Season points as WSL published them, event by event, with each surfer&apos;s
           published throwaway left out. The title is not the points: the five highest
           totals surf the WSL Finals and their finishing order there is the published
@@ -115,7 +133,7 @@ export default async function RankingsView({
       {/* ---- Controls ------------------------------------------------- */}
       <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 text-body-sm">
         <div className="flex items-center gap-4">
-          <span className="text-caption font-semibold uppercase tracking-[0.14em] text-fg-subtle">Season</span>
+          <span className="text-caption font-semibold tracking-[0.04em] text-fg-subtle">Season</span>
           <nav aria-label="Season" className="flex">
             {[...seasons].sort((a, b) => a.year - b.year).map((s, i) => (
               <Chip
@@ -132,7 +150,7 @@ export default async function RankingsView({
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-caption font-semibold uppercase tracking-[0.14em] text-fg-subtle">Format</span>
+          <span className="text-caption font-semibold tracking-[0.04em] text-fg-subtle">Format</span>
           <nav aria-label="Format" className="flex">
             <Chip
               href={href(seasonYear, "final-five")}
@@ -259,13 +277,23 @@ function FinalFive({
 }) {
   const topPoints = Math.max(0, ...finalists.map((f) => f.points));
   return (
-    <Card>
-      <ol className="grid divide-y divide-hairline sm:grid-cols-5 sm:divide-x sm:divide-y-0">
+    <div>
+      <ol className="grid gap-x-6 sm:grid-cols-5">
         {finalists.map((f) => {
           const seed = seedByPoints.get(f.surferId);
           return (
-            <li key={f.surferId} className="flex flex-col gap-1.5 px-4 py-3">
-              <p className="figures text-caption font-medium uppercase tracking-[0.14em] text-fg-subtle">
+            <li
+              key={f.surferId}
+              className="flex flex-col gap-1.5 border-t-2 py-4"
+              style={{ borderTopColor: MEDAL[f.finalsPlacing!] ?? "var(--hairline-strong)" }}
+            >
+              <p
+                className="font-serif text-[2.4rem] font-medium italic leading-none"
+                style={{ color: f.finalsPlacing === 1 ? "var(--accent)" : "var(--fg)" }}
+              >
+                {f.finalsPlacing}
+              </p>
+              <p className="figures text-caption font-medium tracking-[0.04em] text-fg-subtle">
                 {ordinal(f.finalsPlacing!)} · {seed != null ? `${ordinal(seed)} on points` : "outside the top five on points"}
               </p>
               <p className="flex items-center gap-2 font-display text-heading font-bold leading-tight text-fg">
@@ -278,7 +306,7 @@ function FinalFive({
                 <span className={`figures text-heading font-medium leading-none ${f.champion ? "text-accent-strong" : "text-fg"}`}>
                   {formatPoints(f.points)}
                 </span>
-                <span className="text-caption font-medium uppercase text-fg-subtle">pts</span>
+                <span className="text-caption font-medium text-fg-subtle">pts</span>
               </p>
               <MeasureBar
                 fraction={topPoints > 0 ? f.points / topPoints : 0}
@@ -294,6 +322,9 @@ function FinalFive({
           );
         })}
       </ol>
-    </Card>
+    </div>
   );
 }
+
+/** Medal rules for the top three Finals placings. Gold is the site accent. */
+const MEDAL: Record<number, string> = { 1: "var(--accent)", 2: "var(--silver)", 3: "var(--bronze)" };

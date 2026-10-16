@@ -42,7 +42,7 @@ export default function ConditionSplits({
       />
       <SplitTable title="By published wind" splits={wind} unitLabel="Wind" />
       <p className="text-caption leading-relaxed text-fg-subtle lg:col-span-2">
-        <span className="font-semibold uppercase tracking-[0.14em]">What these are not</span>{" "}
+        <span className="font-semibold tracking-[0.04em]">What these are not</span>{" "}
         Conditions are <strong className="font-semibold text-fg-muted">not in the model</strong>.
         Datum V1 is a ridge on the round alone: break, wave type and field size were tested on
         27 August and dropped, because adding them made the leave-one-event-out error worse rather
@@ -87,13 +87,13 @@ function SplitTable({
       <h3 className="mb-3 border-t border-hairline-strong pt-2 font-display text-heading font-bold text-fg">
         {title}
       </h3>
-      <div className="overflow-x-auto border border-table-hairline bg-paper-raised">
+      <div className="overflow-x-auto border-t border-fg">
         <table className="w-full border-collapse text-stat">
           <caption className="sr-only">
             {title}: heats, mean heat total, best heat total and mean deviation from the round&apos;s
             expected total, for each published condition
           </caption>
-          <thead className="border-b border-table-hairline bg-table-head text-caption uppercase tracking-[0.1em] text-fg-muted">
+          <thead className="border-b border-hairline-strong text-caption tracking-[0.04em] text-fg-subtle">
             <tr>
               <th scope="col" className="px-2.5 py-2 text-left font-semibold">
                 {unitLabel}
@@ -116,7 +116,7 @@ function SplitTable({
             {splits.map((s) => (
               <tr
                 key={s.label}
-                className="border-b border-table-hairline last:border-b-0 odd:bg-paper-raised even:bg-table-stripe"
+                className="border-b border-table-hairline last:border-b-0 odd:bg-paper even:bg-table-stripe"
               >
                 <th scope="row" className="px-2.5 py-1.5 text-left font-medium text-fg">
                   <span className="figures">{s.label}</span>

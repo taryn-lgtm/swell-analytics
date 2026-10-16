@@ -1,3 +1,4 @@
+import { nationColours } from "@/lib/nations";
 import Link from "next/link";
 import ChampionBadge from "@/components/ChampionBadge";
 import CountryTag from "@/components/CountryTag";
@@ -52,10 +53,21 @@ export default function SurferHeader(props: SurferHeaderProps) {
   const priorPct =
     props.priorWeight != null ? Math.round(props.priorWeight * 100) : null;
 
+  const nation = nationColours(props.countryCode);
+  const parts = props.fullName.split(" ");
+  const surname = parts.length > 1 ? parts[parts.length - 1] : props.fullName;
+  const given = parts.length > 1 ? parts.slice(0, -1).join(" ") : null;
+
   return (
-    <div className="border-b-2 border-fg bg-paper-raised">
+    <div className="border-b border-hairline">
+      {nation && (
+        <div aria-hidden className="flex h-1">
+          <span className="w-2/3" style={{ background: nation.primary }} />
+          <span className="w-1/3" style={{ background: nation.secondary }} />
+        </div>
+      )}
       <div className="mx-auto max-w-7xl px-4 pb-0 pt-8 sm:px-6">
-        <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-caption font-medium uppercase tracking-[0.18em] text-fg-subtle">
+        <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-caption font-medium tracking-[0.04em] text-fg-subtle">
           {/* Country as WSL publishes it, held for all 73 surfers since
               migration 18 (7 October). The separator stays conditional and
               sits in its own span, so the seasons figure reads "CT …" on its
@@ -69,14 +81,20 @@ export default function SurferHeader(props: SurferHeaderProps) {
           )}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <h1 className="font-display text-display-xl font-bold tracking-tight text-fg">
-            {props.fullName}
+          <h1 className="font-serif text-[clamp(2.8rem,8vw,6.5rem)] font-medium italic leading-[0.95] tracking-[-0.02em] text-fg">
+            {given && (
+              <>
+                {given}{" "}
+                <br />
+              </>
+            )}
+            <span style={nation ? { color: nation.primary } : undefined}>{surname}</span>
           </h1>
           {props.titleYears?.map((y) => <ChampionBadge key={y} year={y} />)}
         </div>
 
         {below && (
-          <p className="mt-4 border-l-2 border-accent-strong bg-paper-sunken px-4 py-3 text-body-sm text-fg-muted">
+          <p className="mt-4 border-l-2 border-accent bg-paper-sunken px-4 py-3 text-body-sm text-fg-muted">
             <strong className="font-semibold text-fg">
               This rating is mostly the starting prior, not this surfer.
             </strong>{" "}
@@ -102,8 +120,8 @@ export default function SurferHeader(props: SurferHeaderProps) {
           </p>
         )}
 
-        <dl className="mt-6 flex flex-wrap divide-x divide-hairline border-t border-hairline">
-          <div className="px-5 py-3 first:pl-0">
+        <dl className="mt-8 grid grid-cols-2 gap-x-8 border-t border-hairline sm:grid-cols-4 lg:grid-cols-7">
+          <div className="col-span-2 py-3 sm:col-span-1">
             <StatLine
               label="Trim"
               value={formatTrim(props.trim)}
@@ -112,7 +130,7 @@ export default function SurferHeader(props: SurferHeaderProps) {
               accent={!below && props.trim != null}
             />
           </div>
-          <div className="px-5 py-3">
+          <div className="py-3">
             <StatLine
               label="Rated heats"
               value={props.nHeats != null ? String(props.nHeats) : "—"}
@@ -120,7 +138,7 @@ export default function SurferHeader(props: SurferHeaderProps) {
               size="md"
             />
           </div>
-          <div className="px-5 py-3">
+          <div className="py-3">
             <StatLine
               label="Prior weight"
               value={formatPriorWeight(props.priorWeight)}
@@ -137,7 +155,7 @@ export default function SurferHeader(props: SurferHeaderProps) {
             />
           </div>
           {props.stats?.map((s) => (
-            <div key={s.label} className="px-5 py-3">
+            <div key={s.label} className="py-3">
               <StatLine label={s.label} value={s.value} unit={s.unit} size="md" />
             </div>
           ))}

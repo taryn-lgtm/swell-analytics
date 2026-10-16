@@ -11,7 +11,7 @@ import ConditionSplits from "@/components/ConditionSplits";
 import { formatDerived, formatScore } from "@/lib/format";
 import { TRIM_MIN_HEATS } from "@/lib/trim";
 import { getTrimModelRun } from "@/lib/queries/home";
-import { getAllSurferSlugs, getSurferProfile } from "@/lib/queries/surfer";
+import { getAllSurferSlugs, getHeatCoverage, getSurferProfile } from "@/lib/queries/surfer";
 
 /*
  * `/surfers/[slug]` -- PROJECT_PLAN.md's M3 cap: "Trim timeline, heat log,
@@ -50,7 +50,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SurferPage({ params }: Props) {
   const { slug } = await params;
-  const [profile, run] = await Promise.all([getSurferProfile(slug), getTrimModelRun()]);
+  const [profile, run, coverage] = await Promise.all([
+    getSurferProfile(slug),
+    getTrimModelRun(),
+    getHeatCoverage(),
+  ]);
   if (!profile) notFound();
 
   const rated = profile.heats.filter((h) => h.trimAfter != null);
@@ -202,10 +206,10 @@ export default async function SurferPage({ params }: Props) {
                 <code className="figures">heats.wave_height_published</code> and{" "}
                 <code className="figures">heats.wind_conditions</code>, both read off the retained
                 heat popup and shown in the words the page used. Across the database these are held
-                for the same <span className="figures">700</span> of{" "}
-                <span className="figures">800</span> heats — a different population from venue,
-                which is held for <span className="figures">712</span>, the extra twelve being the
-                pool event&apos;s. For this surfer that is{" "}
+                for <span className="figures">{coverage.withConditions}</span> of{" "}
+                <span className="figures">{coverage.heats}</span> heats, a different population from
+                venue, which is held for <span className="figures">{coverage.withVenue}</span>. For
+                this surfer that is{" "}
                 <span className="figures">{profile.heatsWithConditions}</span> of{" "}
                 <span className="figures">{profile.heats.length}</span>. Heats with no published
                 conditions are left out of both tables; they are not an

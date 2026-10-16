@@ -32,7 +32,10 @@ def canon(html):
 
     # ---- header -------------------------------------------------------
     h = [f"name={t(soup.find('h1'))}"]
-    head = soup.find("h1").find_parent("div", class_="border-b-2")
+    # The header block is the nearest ancestor holding the stat list. Found by
+    # structure rather than by a class name, so a restyle does not break it
+    # (the 16 Oct 2026 Swell header dropped the old `border-b-2` hook).
+    head = soup.find("h1").find_parent(lambda tag: tag.name == "div" and tag.find("dl") is not None)
     seasons = [t(x) for x in head.select("p span.figures") if t(x).startswith("CT ")]
     h.append(f"seasons={seasons[0] if seasons else ''}")
     titles = re.findall(r"(\d{4}) World Champion", head.get_text(" "))

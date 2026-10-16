@@ -111,7 +111,7 @@ function Section({
     <section className={`border-t border-hairline py-16 sm:py-20 ${alt ? "bg-paper-raised" : ""}`}>
       <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.7fr)] lg:gap-12">
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <p className="text-caption uppercase tracking-[0.14em] text-fg-subtle">{k}</p>
+          <p className="text-caption tracking-[0.04em] text-fg-subtle">{k}</p>
           <h2 className="mt-3 text-balance font-display text-[clamp(1.7rem,3.2vw,2.5rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
             {title}
           </h2>
@@ -338,7 +338,7 @@ export default function TrimExplainer({
     <div className="text-fg">
       {/* hero */}
       <header className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6">
-        <p className="text-caption uppercase tracking-[0.14em] text-fg-subtle">The method</p>
+        <p className="text-caption tracking-[0.04em] text-fg-subtle">The method</p>
         <h1
           className="mt-4 max-w-[14ch] text-balance font-serif text-[clamp(2.8rem,8vw,6.5rem)] font-medium italic leading-[0.95] tracking-[-0.02em]"
           style={{ fontFamily: "var(--font-serif)" }}
@@ -425,7 +425,7 @@ export default function TrimExplainer({
           <B>{N - above}</B>.
         </p>
         <div className="border-t border-fg pt-4">
-          <p className="text-caption uppercase tracking-[0.14em] text-fg-subtle">Try it · a heat {last} might surf next</p>
+          <p className="text-caption tracking-[0.04em] text-fg-subtle">Try it · a heat {last} might surf next</p>
           <div className="mt-3 grid grid-cols-2 gap-3">
             <label className="grid gap-1 text-caption text-fg-subtle">
               Round

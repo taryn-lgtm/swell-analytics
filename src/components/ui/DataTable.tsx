@@ -104,7 +104,7 @@ export default function DataTable<T>({
     <ScrollBox label={caption}>
       <table className="w-full border-collapse text-stat">
         <caption className="sr-only">{caption}</caption>
-        <thead className="border-b border-hairline-strong bg-table-head text-caption uppercase tracking-[0.1em] text-fg-muted">
+        <thead className="border-b border-hairline-strong text-caption tracking-[0.04em] text-fg-subtle">
           <tr>
             {columns.map((col) => {
               const sortable = Boolean(col.sortValue);
@@ -117,7 +117,7 @@ export default function DataTable<T>({
                     active ? (sort!.dir === "asc" ? "ascending" : "descending") : undefined
                   }
                   className={`px-1.5 py-2 font-semibold sm:px-2.5 ${alignClass(col)} ${col.className ?? ""} ${
-                    col.sticky ? "sticky z-10 bg-table-head" : ""
+                    col.sticky ? "sticky z-10 bg-paper" : ""
                   }`}
                   style={stickyStyle(col)}
                 >
@@ -125,7 +125,7 @@ export default function DataTable<T>({
                     <button
                       type="button"
                       onClick={() => toggleSort(col.key)}
-                      className={`group -my-1 inline-flex min-h-6 min-w-6 items-center gap-1 py-1 uppercase tracking-[0.1em] hover:text-fg ${
+                      className={`group -my-1 inline-flex min-h-6 min-w-6 items-center gap-1 py-1 tracking-[0.04em] hover:text-fg ${
                         active ? "text-fg" : ""
                       }`}
                     >
@@ -177,8 +177,8 @@ export default function DataTable<T>({
    so a pinned cell flips with the rest of the row in dark mode. */
 const STICKY_BASE = "sticky z-10 [tr:hover>&]:bg-row-hover";
 const STICKY_STRIPED =
-  `${STICKY_BASE} [tr:nth-child(odd)>&]:bg-paper-raised [tr:nth-child(even)>&]:bg-table-stripe`;
-const STICKY_PLAIN = `${STICKY_BASE} bg-paper-raised`;
+  `${STICKY_BASE} [tr:nth-child(odd)>&]:bg-paper [tr:nth-child(even)>&]:bg-table-stripe`;
+const STICKY_PLAIN = `${STICKY_BASE} bg-paper`;
 
 function stickyStyle<T>(col: Column<T>): React.CSSProperties | undefined {
   if (!col.sticky) return undefined;
@@ -207,7 +207,7 @@ function FragmentRow<T>({
     <>
       <tr
         className={`border-b border-table-hairline last:border-b-0 ${
-          striped ? "odd:bg-paper-raised even:bg-table-stripe" : "bg-paper-raised"
+          striped ? "odd:bg-paper even:bg-table-stripe" : "bg-paper"
         } hover:bg-row-hover ${
           rowClassName?.(row) ?? ""
         }`}

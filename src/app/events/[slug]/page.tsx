@@ -115,17 +115,17 @@ export default async function EventRoute({ params }: Props) {
   return (
     <>
       {/* ---- Masthead ------------------------------------------------- */}
-      <div className="border-b-2 border-fg bg-paper-raised">
+      <div className="border-b border-hairline">
         <Container className="pb-6 pt-8">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="figures text-caption font-medium uppercase tracking-[0.18em] text-fg-subtle">
+            <span className="figures text-caption font-medium tracking-[0.04em] text-fg-subtle">
               {isFinals
                 ? `WSL Finals · ${ev.seasonYear}`
                 : `CT ${ev.seasonYear} · Stop ${String(ev.eventNumber).padStart(2, "0")}`}
             </span>
             {ev.occursAfterCut && !isFinals && <Badge variant="outline">Post-cut</Badge>}
           </div>
-          <h1 className="mt-1 font-display text-display-lg font-bold tracking-tight text-fg">{ev.name}</h1>
+          <h1 className="mt-4 font-serif text-[clamp(2.4rem,6.5vw,5rem)] font-medium italic leading-[0.98] tracking-[-0.02em] text-fg">{ev.name}</h1>
           <p className="mt-2 text-body-sm text-fg-muted">
             <span data-v="venues">
               {ev.heatVenues.length > 0
@@ -167,7 +167,7 @@ export default async function EventRoute({ params }: Props) {
               <StatLine label="Surfed" value={String(ev.surfedCount)} unit="surfers" size="sm" />
             </div>
             <div className="flex min-w-0 flex-col gap-1">
-              <span className="text-caption font-medium uppercase tracking-[0.14em] text-fg-subtle">Winner</span>
+              <span className="text-caption font-medium tracking-[0.04em] text-fg-subtle">Winner</span>
               {ev.winner ? (
                 <span className="flex items-center gap-2 text-heading font-medium leading-none text-fg">
                   <Link data-v="winner" href={`/surfers/${ev.winner.slug}`} className="inline-flex min-h-6 items-center hover:text-link hover:underline">
@@ -202,7 +202,7 @@ export default async function EventRoute({ params }: Props) {
             <div data-v="draw" className="mb-6 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
               {opening.heats.map((h) => (
                 <div key={h.heatId} data-draw-heat className="border-t border-hairline pt-1.5">
-                  <p data-v="draw-label" className="figures text-caption font-semibold uppercase tracking-[0.14em] text-fg-muted">
+                  <p data-v="draw-label" className="figures text-caption font-semibold tracking-[0.04em] text-fg-muted">
                     {h.heatNumber != null ? `Heat ${String(h.heatNumber).padStart(2, "0")}` : "Heat"}
                   </p>
                   <ul className="text-body-sm">
@@ -308,7 +308,7 @@ export default async function EventRoute({ params }: Props) {
                     the share still carried by the prior
                   </caption>
                   <thead>
-                    <tr className="border-b border-hairline text-caption uppercase tracking-[0.12em] text-fg-subtle">
+                    <tr className="border-b border-hairline text-caption tracking-[0.04em] text-fg-subtle">
                       <th scope="col" className={`px-3 py-2 text-left font-medium ${PIN_EDGE} left-0`}>Surfer</th>
                       <th scope="col" className="px-3 py-2 text-right font-medium">Rated heats</th>
                       <th scope="col" className="px-3 py-2 text-right font-medium">Before</th>
@@ -338,7 +338,7 @@ export default async function EventRoute({ params }: Props) {
                           </td>
                           <td
                             data-v="delta"
-                            className={`figures px-3 py-1.5 text-right font-medium ${up ? "text-accent-strong" : "text-fg-subtle"}`}
+                            className={`figures px-3 py-1.5 text-right font-medium ${up ? "text-above" : "text-below"}`}
                           >
                             {formatTrimDelta(m.delta)}
                           </td>
@@ -383,7 +383,7 @@ export default async function EventRoute({ params }: Props) {
 /* Pinned cells for this page's two hand-built tables: opaque on the Card's
    ground so figures scrolling beneath do not show through, with an inset
    hairline on the pinned edge (a border stays behind under border-collapse). */
-const PIN = "sticky z-10 bg-paper-raised";
+const PIN = "sticky z-10 bg-paper";
 const PIN_EDGE = `${PIN} shadow-[inset_-1px_0_0_var(--color-table-hairline)]`;
 
 function FieldTable({ ev, isFinals }: { ev: EventPage; isFinals: boolean }) {
@@ -400,7 +400,7 @@ function FieldTable({ ev, isFinals }: { ev: EventPage; isFinals: boolean }) {
             placing, points, participation and status
           </caption>
           <thead>
-            <tr className="border-b border-hairline text-caption uppercase tracking-[0.12em] text-fg-subtle">
+            <tr className="border-b border-hairline text-caption tracking-[0.04em] text-fg-subtle">
               <th scope="col" className={`px-3 py-2 text-left font-medium ${PIN} left-0 w-20 min-w-20 max-w-20`}>{isFinals ? "Finish" : "Placing"}</th>
               <th scope="col" className={`px-3 py-2 text-left font-medium ${PIN_EDGE} left-20`}>Surfer</th>
               <th scope="col" className="px-3 py-2 text-right font-medium">Heats</th>
@@ -431,7 +431,7 @@ function FieldTable({ ev, isFinals }: { ev: EventPage; isFinals: boolean }) {
                     <td data-v="points" className="figures px-3 py-1.5 text-right">
                       {f.entry ? formatPoints(f.entry.points) : EM_DASH}
                       {f.entry?.throwawayPublished && (
-                        <span data-v="throwaway" className="ml-1.5 text-caption uppercase tracking-[0.08em] text-fg-subtle" title="Published as this surfer's dropped event">
+                        <span data-v="throwaway" className="ml-1.5 text-caption tracking-[0.08em] text-fg-subtle" title="Published as this surfer's dropped event">
                           Throwaway
                         </span>
                       )}

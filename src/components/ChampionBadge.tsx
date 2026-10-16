@@ -40,7 +40,7 @@ export default function ChampionBadge({
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 bg-accent px-2 py-0.5 text-caption font-bold uppercase tracking-[0.1em] text-on-accent">
+    <span className="inline-flex items-center gap-1.5 bg-accent px-2 py-0.5 text-caption font-bold tracking-[0.04em] text-on-accent">
       <CrownIcon />
       {label}
     </span>
