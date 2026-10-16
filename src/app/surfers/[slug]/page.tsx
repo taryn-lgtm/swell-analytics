@@ -6,6 +6,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import ProvenancePanel from "@/components/Provenance";
 import SurferHeader from "@/components/SurferHeader";
 import TrimTimeline from "@/components/TrimTimeline";
+import SwellScroll, { type SwellHeat } from "@/components/SwellScroll";
 import HeatLog from "@/components/HeatLog";
 import ConditionSplits from "@/components/ConditionSplits";
 import { formatDerived, formatScore } from "@/lib/format";
@@ -59,6 +60,23 @@ export default async function SurferPage({ params }: Props) {
 
   const rated = profile.heats.filter((h) => h.trimAfter != null);
   const unrated = profile.heats.length - rated.length;
+  // The swell needs a career's worth of heats to read as a sea; below the
+  // rating threshold the timeline carries the page on its own.
+  const swellHeats: SwellHeat[] = rated
+    .filter((h) => h.seq != null && h.expected != null && h.heatTotal != null && h.residual != null)
+    .sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0))
+    .map((h) => ({
+      year: h.seasonYear,
+      event: h.eventName,
+      round: h.roundName,
+      datum: h.expected!,
+      posted: h.heatTotal!,
+      gap: h.residual!,
+      trim: h.trimAfter!,
+      venue: h.venueName,
+      waveHeight: h.waveHeight,
+      wind: h.wind,
+    }));
   const eventsLabel = `${profile.eventsEntered} ${profile.eventsEntered === 1 ? "event" : "events"}`;
 
   return (
@@ -93,6 +111,14 @@ export default async function SurferPage({ params }: Props) {
           },
         ]}
       />
+
+      {swellHeats.length >= TRIM_MIN_HEATS && (
+        <SwellScroll
+          fullName={profile.fullName}
+          heats={swellHeats}
+          seasonsLabel={`CT ${profile.seasons.join(" and ")}`}
+        />
+      )}
 
       <Container className="py-8 sm:py-10">
         {profile.heats.length === 0 ? (
