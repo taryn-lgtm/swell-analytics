@@ -2,14 +2,15 @@
 
 /* ============================================================================
    WSL Analytics — design tokens. Single source of truth. Colours are the Swell
-   "Overcast" palette (M4, 15 October 2026); the notes below on shape and the
-   mono figures still hold. Light and dark resolve to the same Overcast values.
+   "Overcast" palette (M4, 15 October 2026); the notes below on shape still
+   hold. Light and dark resolve to the same Overcast values.
 
    Vocabulary: flat, crisp, engineered. 1px hairline rules and background-tone
    shifts instead of shadows. Corners sharp (radius 0) or 2px max. Bone paper
    base, deep-ink/ocean-teal foreground, ONE hot coral accent used only where
    it means something (leader, positive movement, live/counting, champion).
-   All numeric data renders in the mono face via the .figures utility.
+   All numeric data renders in the figures face (Archivo, tabular digits)
+   via the .figures utility.
 
    Light-first: :root carries the light semantic values; [data-theme="dark"]
    carries the dark set. ThemeToggle writes data-theme on <html>, and an inline
@@ -53,13 +54,15 @@
   --color-coral-700: #ad2f14;
 
   /* ---- Typography ----------------------------------------------------------
-     Display: Space Grotesk — characterful engineered grotesk.
-     UI:      IBM Plex Sans — clean, neutral, drawing-office pedigree.
-     Figures: IBM Plex Mono — ALL numeric data (points, scores, ranks). */
+     Text:     Bricolage Grotesque.
+     Display:  Fraunces italic (--font-serif).
+     Figures:  Archivo with tabular digits — ALL numeric data (points, scores,
+               ranks, chart labels). Plex Mono is kept for code only. */
   --font-display: var(--font-bricolage), system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: var(--font-bricolage), system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-serif: var(--font-fraunces), Georgia, serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-figures: var(--font-archivo), var(--font-bricolage), system-ui, sans-serif;
 
   /* type scale — 4px baseline rhythm */
   --text-display-xl: 3.5rem;
@@ -212,12 +215,13 @@ body {
   font-family: var(--font-sans);
 }
 
-/* ALL numeric data (points, scores, ranks, heights) reads in the mono face.
-   Apply to the element that contains the figure, not whole tables. */
+/* ALL numeric data (points, scores, ranks, heights) reads in the figures face.
+   Apply to the element that contains the figure, not whole tables. Archivo's
+   digits are proportional by default, so tabular-nums is what keeps columns
+   aligned. */
 .figures {
-  font-family: var(--font-mono);
+  font-family: var(--font-figures);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
 }
 
 :focus-visible {

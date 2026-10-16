@@ -131,8 +131,12 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
           aria-hidden
           viewBox={`0 0 ${L} ${TOTAL_H}`}
           className="sticky left-0 z-10 block h-auto shrink-0 self-start"
-          style={{ width: `${(L / W) * 100}%`, marginRight: `-${(L / W) * 100}%` }}
-          fontFamily="var(--font-mono)"
+          style={{
+            width: `${(L / W) * 100}%`,
+            marginRight: `-${(L / W) * 100}%`,
+            fontVariantNumeric: "tabular-nums",
+          }}
+          fontFamily="var(--font-figures)"
         >
           <rect x={0} y={0} width={L} height={TOTAL_H} fill="var(--color-paper)" />
           {ticks.map((v) => (
@@ -167,7 +171,8 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
             tv[0]
           )} to ${formatTrim(lastTrim)}, with the deviation from Datum for each heat below`}
           className="block h-auto w-full shrink-0"
-          fontFamily="var(--font-mono)"
+          fontFamily="var(--font-figures)"
+          style={{ fontVariantNumeric: "tabular-nums" }}
         >
           {priorUntil >= 0 && (
             <g>
