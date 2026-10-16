@@ -32,6 +32,18 @@ const fraunces = localFont({
   display: "swap",
 });
 
+/* Archivo carries every figure (scores, Trim, ranks, chart labels) with
+   tabular digits on, chosen by Taryn on 16 October 2026 over IBM Plex Mono so
+   numbers read as part of the sentence rather than as code. SIL OFL, latin
+   subset (includes U+2212, the minus sign Trim deltas use). Plex Mono stays
+   for code snippets only. */
+const archivo = localFont({
+  src: "../fonts/archivo-var-latin.woff2",
+  weight: "100 900",
+  variable: "--font-archivo",
+  display: "swap",
+});
+
 const plexMono = localFont({
   src: [
     { path: "../fonts/plex-mono-400-latin.woff2", weight: "400", style: "normal" },
@@ -61,7 +73,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full ${bricolage.variable} ${fraunces.variable} ${plexMono.variable}`}
+      className={`h-full ${bricolage.variable} ${fraunces.variable} ${archivo.variable} ${plexMono.variable}`}
       // The init script sets data-theme before hydration; React must not
       // treat that as a mismatch.
       suppressHydrationWarning
