@@ -13,8 +13,10 @@ import { THEME_INIT_SCRIPT } from "@/lib/theme";
  * removes a build-time network dependency in CI/Vercel.
  */
 
-/* Swell (M4): Bricolage Grotesque for text and headings, Bodoni Moda italic
-   for the display titles only. Both SIL Open Font License, latin subset. */
+/* Swell (M4): Bricolage Grotesque for text and headings, Fraunces italic for
+   the display titles and names. Both SIL Open Font License, latin subset.
+   Fraunces replaced Bodoni Moda on 16 October 2026 at Taryn's choice: Bodoni's
+   hairlines vanished in light-on-dark display sizes and broke letters apart. */
 const bricolage = localFont({
   src: "../fonts/bricolage-grotesque-var-latin.woff2",
   weight: "200 800",
@@ -22,11 +24,11 @@ const bricolage = localFont({
   display: "swap",
 });
 
-const bodoni = localFont({
-  src: "../fonts/bodoni-moda-italic-var-latin.woff2",
+const fraunces = localFont({
+  src: "../fonts/fraunces-italic-var-latin.woff2",
   weight: "400 700",
   style: "italic",
-  variable: "--font-bodoni",
+  variable: "--font-fraunces",
   display: "swap",
 });
 
@@ -59,7 +61,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full ${bricolage.variable} ${bodoni.variable} ${plexMono.variable}`}
+      className={`h-full ${bricolage.variable} ${fraunces.variable} ${plexMono.variable}`}
       // The init script sets data-theme before hydration; React must not
       // treat that as a mismatch.
       suppressHydrationWarning

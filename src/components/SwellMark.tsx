@@ -9,7 +9,7 @@ export default function SwellMark({ className = "" }: { className?: string }) {
   );
 }
 
-/** The wordmark: "Swell" in Bodoni italic, "Analytics" set small in the text face. */
+/** The wordmark: "Swell" in Fraunces italic, "Analytics" set small in the text face. */
 export function Wordmark() {
   return (
     <span className="inline-flex items-baseline gap-1.5 leading-none">

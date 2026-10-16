@@ -110,7 +110,7 @@ export default async function HomeView({ showingAll }: { showingAll: boolean }) 
           {rated.length} rated surfers · {ratedHeats.toLocaleString("en-GB")} heats surfed between them · Men&apos;s CT{" "}
           {seasonsLabel || "no seasons loaded"}
         </p>
-        <h1 className="mt-5 font-serif text-[clamp(3rem,9vw,7.5rem)] font-medium italic leading-[0.92] tracking-[-0.02em] text-fg">
+        <h1 className="mt-5 font-serif text-[clamp(3rem,9vw,7.5rem)] font-semibold italic leading-[1.06] tracking-[0.005em] text-fg">
           Who is surfing
           <br />
           <span className="text-accent">above the line.</span>

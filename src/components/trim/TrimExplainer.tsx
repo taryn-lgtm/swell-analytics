@@ -340,7 +340,7 @@ export default function TrimExplainer({
       <header className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6">
         <p className="text-caption tracking-[0.04em] text-fg-subtle">The method</p>
         <h1
-          className="mt-4 max-w-[14ch] text-balance font-serif text-[clamp(2.8rem,8vw,6.5rem)] font-medium italic leading-[0.95] tracking-[-0.02em]"
+          className="mt-4 max-w-[14ch] text-balance font-serif text-[clamp(2.8rem,8vw,6.5rem)] font-semibold italic leading-[1.06] tracking-[0.005em]"
           style={{ fontFamily: "var(--font-serif)" }}
         >
           Every heat, against the right bar.

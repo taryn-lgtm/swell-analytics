@@ -73,7 +73,7 @@ export default async function AboutPage() {
         <p className="text-caption tracking-[0.06em] text-fg-subtle">
           Men&apos;s Championship Tour · {seasonsLabel || "no seasons loaded"}
         </p>
-        <h1 className="mt-4 font-serif text-[clamp(2.6rem,7vw,5.5rem)] font-medium italic leading-[0.95] tracking-[-0.02em] text-fg">
+        <h1 className="mt-4 font-serif text-[clamp(2.6rem,7vw,5.5rem)] font-semibold italic leading-[1.06] tracking-[0.005em] text-fg">
           How the numbers are made.
         </h1>
         <p className="mt-3 max-w-3xl text-body text-fg-muted">

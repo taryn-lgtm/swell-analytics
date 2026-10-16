@@ -125,7 +125,7 @@ export default async function EventRoute({ params }: Props) {
             </span>
             {ev.occursAfterCut && !isFinals && <Badge variant="outline">Post-cut</Badge>}
           </div>
-          <h1 className="mt-4 font-serif text-[clamp(2.4rem,6.5vw,5rem)] font-medium italic leading-[0.98] tracking-[-0.02em] text-fg">{ev.name}</h1>
+          <h1 className="mt-4 font-serif text-[clamp(2.4rem,6.5vw,5rem)] font-semibold italic leading-[1.06] tracking-[0.005em] text-fg">{ev.name}</h1>
           <p className="mt-2 text-body-sm text-fg-muted">
             <span data-v="venues">
               {ev.heatVenues.length > 0

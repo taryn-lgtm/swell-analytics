@@ -81,7 +81,7 @@ export default function SurferHeader(props: SurferHeaderProps) {
           )}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <h1 className="font-serif text-[clamp(2.8rem,8vw,6.5rem)] font-medium italic leading-[0.95] tracking-[-0.02em] text-fg">
+          <h1 className="font-serif text-[clamp(2.8rem,8vw,6.5rem)] font-semibold italic leading-[1.06] tracking-[0.005em] text-fg">
             {given && (
               <>
                 {given}{" "}

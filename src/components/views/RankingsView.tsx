@@ -79,7 +79,7 @@ export default async function RankingsView({
           {seasonYear} · {eventsCounted} events · {rowsByPoints.length} surfers on the points table · Men&apos;s CT{" "}
           {seasonsLabel}
         </p>
-        <h1 className="mt-5 font-serif text-[clamp(2.6rem,7.5vw,6.25rem)] font-medium italic leading-[0.95] tracking-[-0.02em] text-fg">
+        <h1 className="mt-5 font-serif text-[clamp(2.6rem,7.5vw,6.25rem)] font-semibold italic leading-[1.06] tracking-[0.005em] text-fg">
           {championRow ? (
             <>
               {championRow.fullName}, <span className="text-accent">{seasonYear}</span>
