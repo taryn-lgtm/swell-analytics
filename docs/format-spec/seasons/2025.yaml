@@ -1,0 +1,250 @@
+# WSL Men's Championship Tour — 2025 season specification
+#
+# Inherits Era A shared rules from ./era_a.yaml (same directory).
+# Only season-specific facts and overrides appear below.
+#
+# RULES FOR THIS FILE
+#   - Every fact carries a `source`. A fact with `source: null` is NOT verified.
+#   - Never write a plausible value. Write `null` and a `todo`.
+
+season: 2025
+tour: mens_championship_tour
+inherits: era_a
+spec_status: draft          # draft | signed_off
+last_updated: 2026-07-25
+
+sources:
+  calendar:
+    url: https://www.worldsurfleague.com/events/2025/ct?all=1
+    captured: 2026-07-25
+  final_rankings:
+    url: https://www.worldsurfleague.com/athletes/tour/mct?year=2025
+    captured: 2026-07-25
+  rulebook:
+    file: docs/format-spec/rulebooks/2025_WSL_Rule_Book_clean_06012025.pdf
+    last_updated: 2025-06-01
+
+world_champion:
+  surfer: Yago Dora
+  country: Brazil
+  source: https://www.worldsurfleague.com/athletes/tour/mct?year=2025
+  note: >
+    Recorded explicitly, never derived from points. Rank 1 on the published
+    final rankings, which reallocate the top five by WSL Finals placing under
+    Rule 1.05(e). The points leader is frequently NOT the champion.
+
+cut:
+  exists: true
+  after_event: 7
+  source: null
+  todo: >
+    Inferred from the calendar position of the Margaret River Pro and confirmed
+    consistent with the throwaway validation across the full field. NOT yet
+    confirmed from a published WSL announcement. Confirm before sign-off.
+
+throwaway:
+  eligible_event_numbers: [1..7]
+  note: >
+    7 pre-cut events, so Rule 1.09(c)'s seven-event condition IS met
+    for the mid-season cut calculation. The season-total throwaway applies
+    regardless — see ../THROWAWAY_DERIVATION.md.
+
+# ---------------------------------------------------------------------------
+# Events
+#
+# Read from the WSL calendar page on 2026-07-25. Considered verified.
+# ---------------------------------------------------------------------------
+
+events:
+  - number: 1
+    wsl_event_id: 320
+    name: Lexus Pipe Pro
+    venue: Pipeline
+    location: Oahu, Hawaii, United States
+    start_date: 2025-01-27
+    end_date: 2025-02-08
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2025/ct/320/lexus-pipe-pro/results
+
+  - number: 2
+    wsl_event_id: 321
+    name: Surf Abu Dhabi Pro
+    venue: Surf Abu Dhabi
+    location: Hudayriyat Island, Abu Dhabi, United Arab Emirates
+    start_date: 2025-02-14
+    end_date: 2025-02-16
+    format: pool
+    round_structure: null
+    BLOCKING: true
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2025/ct/321/surf-abu-dhabi-pro/results
+    todo: >
+      BLOCKING FOR ERA A. Artificial Wave System event. Format is not
+      specified in the rulebook — the rulebook delegates pool formats to
+      the Commissioner's Office. Must be sourced from WSL's published
+      format release for this specific event. Establish: heat structure,
+      scoring basis, whether scores carry over between rounds, and whether
+      a score belongs to a heat or to a surfer-event.
+
+  - number: 3
+    wsl_event_id: 322
+    name: MEO Rip Curl Pro Portugal
+    venue: Supertubos
+    location: Peniche, Portugal
+    start_date: 2025-03-15
+    end_date: 2025-03-25
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2025/ct/322/meo-rip-curl-pro-portugal/results
+
+  - number: 4
+    wsl_event_id: 323
+    name: Surf City El Salvador Pro
+    venue: Punta Roca
+    location: La Libertad, El Salvador
+    start_date: 2025-04-02
+    end_date: 2025-04-12
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2025/ct/323/surf-city-el-salvador-pro/results
+
+  - number: 5
+    wsl_event_id: 324
+    name: Rip Curl Pro Bells Beach
+    venue: Bells Beach
+    location: Victoria, Australia
+    start_date: 2025-04-18
+    end_date: 2025-04-28
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2025/ct/324/rip-curl-pro-bells-beach/results
+
+  - number: 6
+    wsl_event_id: 325
+    name: Bonsoy Gold Coast Pro
+    venue: Gold Coast
+    location: Queensland, Australia
+    start_date: 2025-05-03
+    end_date: 2025-05-13
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2025/ct/325/bonsoy-gold-coast-pro/results
+
+  - number: 7
+    wsl_event_id: 326
+    name: Western Australia Margaret River Pro
+    venue: Main Break
+    location: Margaret River, Western Australia, Australia
+    start_date: 2025-05-17
+    end_date: 2025-05-27
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2025/ct/326/western-australia-margaret-river-pro/results
+    note: Final event before the mid-season cut, pending confirmation of cut timing.
+
+  - number: 8
+    wsl_event_id: 327
+    name: Lexus Trestles Pro
+    venue: Lower Trestles
+    location: San Clemente, California, United States
+    start_date: 2025-06-09
+    end_date: 2025-06-17
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2025/ct/327/lexus-trestles-pro/results
+
+  - number: 9
+    wsl_event_id: 328
+    name: VIVO Rio Pro
+    venue: Saquarema
+    location: Rio de Janeiro, Brazil
+    start_date: 2025-06-21
+    end_date: 2025-06-29
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2025/ct/328/vivo-rio-pro/results
+
+  - number: 10
+    wsl_event_id: 329
+    name: Corona Cero Open J-Bay
+    venue: Jeffreys Bay
+    location: Eastern Cape, South Africa
+    start_date: 2025-07-11
+    end_date: 2025-07-20
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2025/ct/329/corona-cero-open-j-bay/results
+
+  - number: 11
+    wsl_event_id: 330
+    name: Lexus Tahiti Pro
+    venue: Teahupo'o
+    location: Tahiti, French Polynesia
+    start_date: 2025-08-07
+    end_date: 2025-08-16
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2025/ct/330/lexus-tahiti-pro/results
+
+  - number: 12
+    wsl_event_id: 331
+    name: Lexus WSL Finals Fiji
+    venue: Cloudbreak
+    location: Fiji
+    start_date: 2025-08-27
+    end_date: 2025-09-04
+    format: finals_five
+    round_structure: wsl_finals
+    awards_ranking_points: false
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2025/ct/331/lexus-wsl-finals-fiji/results
+    note: >
+      Reallocates the top five ranking positions rather than awarding points.
+      Final Match is best of three heats.
+
+# ---------------------------------------------------------------------------
+# Expected values — consumed directly by the audit suite
+# ---------------------------------------------------------------------------
+
+expected:
+  event_count: 12
+  regular_season_events: 11
+  pool_events: 1
+  cancelled_events: 0
+  abandoned_events: 0
+  placeholder_dates_permitted: false
+
+acceptance:
+  reconstruction_test:
+    passed: false
+    description: >
+      Using only the rules in this file plus published event placings, rebuild
+      the published 2025 final standings for every surfer, not just the top
+      five. Not signed off until that reconciles exactly.
+    blockers:
+      - Confirm the mid-season cut position from a published source
+      - Specify the Surf Abu Dhabi Pro format
+      - Resolve whether cut-eliminated surfers receive a throwaway

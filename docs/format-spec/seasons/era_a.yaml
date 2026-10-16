@@ -1,0 +1,235 @@
+# Era A shared rules — WSL Men's Championship Tour, 2022-2025
+#
+# Verified identical across the 2022, 2023, 2024 and 2025 rulebooks.
+# Season files inherit this block via `inherits: era_a` and override only where
+# they differ. Held in one place so four copies cannot drift apart.
+
+era: A
+seasons: [2022, 2023, 2024, 2025]
+tour: mens_championship_tour
+
+format:
+  type: final_five
+  title_decided_by: wsl_finals_event
+  source: rulebook 1.06(e)
+
+field:
+  size_pre_cut: 36
+  size_post_cut: 24
+  source: rulebook 1.06(a), 1.06(b), 1.09(a)
+  note: >
+    24, not 22. Rule 1.09(a)(i) qualifies the top 22 men from the CT rankings for
+    post-cut events; the field of 24 is completed by wildcards. Do not conflate
+    "requalified" with "competing".
+
+# Men's CT. Position bands: a zero means no surfer finishes at that position —
+# placings are banded (equal 3rd, equal 5th, and so on).
+points:
+  table_id: ct_era_a_men
+  source: rulebook Appendix B
+  verified_identical_in: [2022, 2023, 2024, 2025]
+  placements:
+    1: 10000
+    2: 7800
+    3: 6085
+    5: 4745
+    9: 3320
+    17: 1330
+    33: 265
+  pipe_multiplier:
+    applies: false
+    source: rulebook Appendix B
+    note: >
+      No Pipe multiplier exists in any Era A rulebook. A separate elevated Pipe
+      points column (10000 -> 15000) first appears in 2026. Handover §5.3 cites
+      "Rule 1.06(c)" for a 1.5x multiplier; in the 2024 book 1.06(c) is the
+      women's event format. Do not apply a multiplier to any Era A season.
+
+throwaway:
+  form: counting_events
+  rule: best (P - 1) of P eligible events, where P = number of pre-cut events
+  eligible_events: pre_cut_only
+  incomplete_block: >
+    A surfer holding fewer than (P - 1) eligible results keeps all of them. No drop is
+    applied. This is a consequence of the counting form, not a special case.
+  tie_rule:
+    on_equal_worst: earliest event
+    source: published no-count markup, 21 instances in 2024
+  published_flag:
+    available: true
+    markup: td carries class `no-count`; a span carries a `Throwaway` tooltip
+    guidance: >
+      CAPTURE THE PUBLISHED FLAG AS A FIELD. Do not derive the throwaway and treat the
+      result as truth. Capture both, and assert agreement as a standing audit check.
+      Two independent signals that must reconcile.
+  source: empirical, plus published no-count markup
+  authority: >
+    DERIVED FROM PUBLISHED RANKINGS, NOT THE RULEBOOK. The rulebook glossary defines
+    Throwaway with no pre-cut restriction and is contradicted by the data.
+  rulebook_conflict: >
+    The rulebook glossary defines Throwaway as the event where a surfer earned the
+    least points that year, with no pre-cut restriction. The published rankings
+    contradict this. Rule 1.09(c) authorises a throwaway only for the mid-season
+    cut calculation and only when seven pre-cut events exist — a condition not met
+    in 2022, 2023 or 2024, all of which apply a drop regardless. No CT provision
+    authorising the season-total throwaway has been located.
+  evidence_strength: >
+    2024: 33 of 33 rows with a complete eligible block carry a drop; 0 of 2 without.
+    Selection rule agrees with the published flag 33/33.
+    BUT only 2 of 33 rows genuinely discriminate "worst pre-cut" from "worst overall".
+    The cut-eliminated cohort STRUCTURALLY cannot discriminate, since all its results
+    are pre-cut. The counting form itself rests on just 2 incomplete rows.
+  untested: >
+    2022, 2023 and 2025 hold 42 further incomplete rows and would test the counting
+    form properly. Run before the points engine ships.
+  supersedes: >
+    The earlier form (count: 1, selection: worst eligible result) is retracted: applied
+    literally it fails for Slater and Toledo in 2024. The "95 confirmations across 139
+    rows" authority claim is also retracted as inflated — see evidence_strength.
+    ../THROWAWAY_DERIVATION.md row counts for 2024 (34 rows, 32/1/1) are superseded by
+    the reconstruction's 35 rows and 33/2/0; the earlier figures came from a filtered
+    live-DOM parse, not a positional parse against a retained artefact. Replace rather
+    than reconcile.
+
+participation:
+  types:
+    - type: ct_surfer
+      earns_ranking_points: true
+    - type: injury_replacement
+      earns_ranking_points: true
+      note: Boukhiam, event 1, 2024. Marked with a nested asterisk span in the rankings table.
+    - type: event_wildcard
+      earns_ranking_points: false
+      note: >
+        Yields a finishing placing but NO points. Confirmed 2024: Slater 5th at Tahiti,
+        Chianca 5th at El Salvador, plus three further instances. On the event page these
+        rows carry a Place span and no Points span.
+  guidance: >
+    NEVER derive points from a finishing placing alone. Points must come from the published
+    Points value, or from placing ONLY after participation type is known to be a scoring one.
+    This is the most likely source of a whole silently-wrong cohort in the points engine.
+  source: 2024 reconstruction, Stage 1
+  todo: Confirm the same distinction holds across 2022, 2023 and 2025.
+
+round_structures:
+
+  pre_cut_36:
+    source: rulebook 1.06(a)
+    rounds:
+      - {name: Opening Round,   heats: 12, heat_size: 3, outcomes: [{placings: [1,2], to: Round of 32}, {placings: [3], to: Elimination Round}]}
+      - {name: Elimination Round, heats: 4, heat_size: 3, outcomes: [{placings: [1,2], to: Round of 32}, {placings: [3], finishes: 33}]}
+      - {name: Round of 32,     heats: 16, heat_size: 2, outcomes: [{placings: [1], to: Round of 16}, {placings: [2], finishes: 17}]}
+      - {name: Round of 16,     heats: 8,  heat_size: 2, outcomes: [{placings: [1], to: Quarter Finals}, {placings: [2], finishes: 9}]}
+      - {name: Quarter Finals,  heats: 4,  heat_size: 2, outcomes: [{placings: [1], to: Semi Finals}, {placings: [2], finishes: 5}]}
+      - {name: Semi Finals,     heats: 2,  heat_size: 2, outcomes: [{placings: [1], to: Final}, {placings: [2], finishes: 3}]}
+      - {name: Final,           heats: 1,  heat_size: 2, outcomes: [{placings: [1], finishes: 1}, {placings: [2], finishes: 2}]}
+    closing_rounds_source: >
+      ASSUMED, not sourced. The QF/SF/Final outcomes above are stated so Stage 2 can map
+      placings to points at all. Confirm against Stage 2 output before treating as sourced.
+    arithmetic_check: >
+      12 x 3 = 36 surfers. 24 advance directly to R/32. 12 drop to the Elimination
+      Round (4 x 3), of whom 8 advance. 24 + 8 = 32. "Round of 32" is literal.
+
+  post_cut_24:
+    source: rulebook 1.06(b)
+    rounds:
+      - {name: Opening Round,   heats: 8, heat_size: 3, outcomes: [{placings: [1], to: Round of 16}, {placings: [2,3], to: Elimination Round}]}
+      - {name: Elimination Round, heats: 8, heat_size: 2, outcomes: [{placings: [1], to: Round of 16}, {placings: [2], finishes: 17}]}
+      - {name: Round of 16,     heats: 8, heat_size: 2, outcomes: [{placings: [1], to: Quarter Finals}, {placings: [2], finishes: 9}]}
+      - {name: Quarter Finals,  heats: 4, heat_size: 2, outcomes: [{placings: [1], to: Semi Finals}, {placings: [2], finishes: 5}]}
+      - {name: Semi Finals,     heats: 2, heat_size: 2, outcomes: [{placings: [1], to: Final}, {placings: [2], finishes: 3}]}
+      - {name: Final,           heats: 1, heat_size: 2, outcomes: [{placings: [1], finishes: 1}, {placings: [2], finishes: 2}]}
+    closing_rounds_source: >
+      ASSUMED, not sourced. The QF/SF/Final outcomes above are stated so Stage 2 can map
+      placings to points at all. Confirm against Stage 2 output before treating as sourced.
+    arithmetic_check: >
+      8 x 3 = 24. 8 advance directly to R/16. 16 drop to the Elimination Round
+      (8 x 2), of whom 8 advance. 8 + 8 = 16.
+
+  wsl_finals:
+    source: rulebook 1.06(e)
+    seeded_from: CT Ranking Points after the last Regular Season event
+    field: 5
+    awards_ranking_points: false
+    ladder:
+      - {name: Match 1, contestants: [seed_5, seed_4], priority: seed_4, winner_to: Match 2}
+      - {name: Match 2, contestants: [winner_match_1, seed_3], priority: seed_3, winner_to: Match 3}
+      - {name: Match 3, contestants: [winner_match_2, seed_2], priority: seed_2, winner_to: Final Match}
+      - {name: Final Match, contestants: [winner_match_3, seed_1], priority: seed_1, best_of: 3, winner: world_champion}
+    schema_implication: >
+      The Final Match is best of three heats. A "Final" is not always one heat.
+      Any model assuming one heat per round name will break here.
+    injury_rule:
+      replacement_permitted: false
+      source: rulebook 1.05(e)
+      detail: >
+        A Top 5 surfer injured before the Finals is not replaced; the event runs
+        with four. Final rankings are adjusted per 1.05(f).
+    points_note: >
+      Appendix B covers all CT events OTHER THAN the WSL Finals. The Finals
+      reallocates the top five ranking positions rather than awarding points.
+      Do not model it as a points-scoring event.
+
+scoring:
+  counting_rides: 2
+  source: rulebook 10.05(c)
+
+heat_tiebreak:
+  source: rulebook 10.06
+  order:
+    - highest best counting wave score
+    - next best wave, repeated until broken
+    - surf off (or, if tied at zero, advance by seeding)
+  note: >
+    v1's observed rule — higher single best wave advances — is CODIFIED, not
+    coincidence. Handover §6 open question closed.
+
+interference:
+  source: rulebook 11.17
+  penalties:
+    - {level: 1, effect: second highest scoring ride halved}
+    - {level: 2, effect: second highest scoring ride scores zero}
+    - {level: 3, effect: highest scoring ride scores zero}
+    - {level: disqualification, effect: surfer disqualified from the heat}
+  default_priority_situation: 2
+  capture_status: not_published
+  note: >
+    Interference calls are not published as structured data anywhere on the WSL
+    site. Carry the table in the schema per principle 7; leave it unpopulated.
+  todo: >
+    Penalties alter ride VALUES, so whether heat_total equals wave_1 + wave_2 on
+    an interference heat depends on whether WSL publishes pre- or post-penalty
+    ride scores. Settle by summing both counting waves against the published heat
+    total across a full season and counting mismatches.
+
+pool_events:
+  specified_in_rulebook: false
+  source: rulebook 2.02, 12.xx
+  note: >
+    The rulebooks permit alternate formats for events held in Artificial Wave
+    Systems, subject to approval by the Commissioner's Office, but do not specify
+    them. Pool event formats must come from WSL's published format releases for
+    each specific event.
+
+scraping_notes:
+  event_id_ordering: >
+    Event IDs are NOT reliably ordered by event number. 2022 runs 2, 3, 6, 9, 5,
+    8, 12, 7, 4, 11, 10. 2023, 2024 and 2025 happen to be sequential, which makes
+    this an easy trap. Always take event order from the calendar, never from the ID.
+  cell_parsing: >
+    There are NO empty cells in the rankings table. An event a surfer did not contest
+    renders as `-` (57 of 315 cells in 2024). The real hazard is nested markup INSIDE a
+    populated cell: an injury-replacement marker renders as a nested
+    <span class="asterisk">*</span>, which naive extraction drops, shortening the row and
+    misaligning every subsequent event column. Ramzi Boukhiam's 2024 row is the known case
+    — his row is complete, nine of nine populated.
+    Parse cells positionally, take full text content including nested elements, and assert
+    the cell count against the season's event count. A short row is a parse failure, never
+    a surfer who missed events.
+  cell_parsing_supersedes: >
+    Replaces the earlier `empty_cells` note, which rested on a wrong diagnosis. A parser
+    hardened against empty cells is hardened against nothing.
+  urls:
+    calendar: https://www.worldsurfleague.com/events/{year}/ct?all=1
+    event_results: https://www.worldsurfleague.com/events/{year}/ct/{eventId}/{slug}/results
+    final_rankings: https://www.worldsurfleague.com/athletes/tour/mct?year={year}

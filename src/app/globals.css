@@ -1,0 +1,231 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   WSL Analytics — design tokens. Single source of truth. Colours are the Swell
+   "Overcast" palette (M4, 15 October 2026); the notes below on shape and the
+   mono figures still hold. Light and dark resolve to the same Overcast values.
+
+   Vocabulary: flat, crisp, engineered. 1px hairline rules and background-tone
+   shifts instead of shadows. Corners sharp (radius 0) or 2px max. Bone paper
+   base, deep-ink/ocean-teal foreground, ONE hot coral accent used only where
+   it means something (leader, positive movement, live/counting, champion).
+   All numeric data renders in the mono face via the .figures utility.
+
+   Light-first: :root carries the light semantic values; [data-theme="dark"]
+   carries the dark set. ThemeToggle writes data-theme on <html>, and an inline
+   script in the root layout sets it before first paint (DESIGN_BRIEF F10).
+   Components never use raw hex/px — only these tokens via Tailwind utilities.
+   ============================================================================ */
+
+@theme {
+  /* ---- Raw scales ---------------------------------------------------------- */
+
+  /* ink — deep blue-black foreground. The instrument's "printed" colour. */
+  --color-ink-950: #0a141c;
+  --color-ink-900: #101c26;
+  --color-ink-800: #1a2c39;
+  --color-ink-700: #31434f;
+  --color-ink-500: #5b6b74;
+  --color-ink-400: #75838c;
+  --color-ink-300: #9ba7ae;
+  --color-ink-200: #c4cdd2;
+  --color-ink-100: #e3e8ea;
+
+  /* bone — warm paper base */
+  --color-bone-50: #faf8f3;
+  --color-bone-100: #f4f1e8;
+  --color-bone-200: #eae5d8;
+  --color-bone-300: #d9d2bf;
+  --color-bone-400: #beb499;
+
+  /* teal — ocean-teal structural foreground: links, rules, quiet emphasis */
+  --color-teal-100: #d7e8e6;
+  --color-teal-500: #257d7b;
+  --color-teal-600: #14666a;
+  --color-teal-700: #0f5257;
+  --color-teal-800: #0d4046;
+  --color-teal-900: #0b3138;
+
+  /* coral — THE hot accent. Leader, positive movement, live, champion. */
+  --color-coral-100: #fbe6dd;
+  --color-coral-500: #e8502f;
+  --color-coral-600: #cf3d1e;
+  --color-coral-700: #ad2f14;
+
+  /* ---- Typography ----------------------------------------------------------
+     Display: Space Grotesk — characterful engineered grotesk.
+     UI:      IBM Plex Sans — clean, neutral, drawing-office pedigree.
+     Figures: IBM Plex Mono — ALL numeric data (points, scores, ranks). */
+  --font-display: var(--font-bricolage), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-bricolage), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: var(--font-bodoni), Didot, "Bodoni 72", Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* type scale — 4px baseline rhythm */
+  --text-display-xl: 3.5rem;
+  --text-display-xl--line-height: 1;
+  --text-display-xl--letter-spacing: -0.02em;
+  --text-display-lg: 2.75rem;
+  --text-display-lg--line-height: 1.05;
+  --text-display-lg--letter-spacing: -0.015em;
+  --text-display-md: 2rem;
+  --text-display-md--line-height: 1.1;
+  --text-display-md--letter-spacing: -0.01em;
+  --text-display-sm: 1.375rem;
+  --text-display-sm--line-height: 1.2;
+  --text-heading: 1.125rem;
+  --text-heading--line-height: 1.35;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.6;
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.5;
+  --text-caption: 0.6875rem;
+  --text-caption--line-height: 1.45;
+  --text-stat: 0.8125rem;
+  --text-stat--line-height: 1.4;
+
+  /* ---- Shape: sharp or 2px. No shadows — hairlines and tone shifts only. */
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+}
+
+/* Semantic tokens — what components actually reference. These flip in dark. */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-paper-sunken: var(--paper-sunken);
+  --color-chrome: var(--chrome);
+  --color-chrome-fg: var(--chrome-fg);
+  --color-chrome-fg-muted: var(--chrome-fg-muted);
+  --color-chrome-hairline: var(--chrome-hairline);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-table-hairline: var(--table-hairline);
+  --color-table-stripe: var(--table-stripe);
+  --color-table-head: var(--table-head);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-above: var(--above);
+  --color-below: var(--below);
+  --color-structure: var(--structure);
+  --color-link: var(--link);
+  --color-focus: var(--focus);
+  --color-bar-track: var(--bar-track);
+  --color-bar-fill: var(--bar-fill);
+  --color-row-hover: var(--row-hover);
+  /* wave-score bands (CLAUDE.md thresholds), flat print treatment */
+  --color-score-excellent-bg: var(--score-excellent-bg);
+  --color-score-excellent-fg: var(--score-excellent-fg);
+  --color-score-good-bg: var(--score-good-bg);
+  --color-score-good-fg: var(--score-good-fg);
+}
+
+:root {
+  /* -------- OVERCAST (Swell, M4). One theme: slate ground, sand yellow above
+     the line, sea blue below. docs/concepts/m4_site/styleguide.html -------- */
+  --paper: #1d2327;
+  --paper-raised: #262e33;
+  --paper-sunken: #191e21;
+  --chrome: #1d2327;
+  --chrome-fg: #eef1f2;
+  --chrome-fg-muted: #a1acb2;
+  --chrome-hairline: #384349;
+  --fg: #eef1f2;
+  --fg-muted: #c6cdd1;
+  --fg-subtle: #a1acb2;
+  --hairline: #384349;
+  --hairline-strong: #4a5760;
+  --table-hairline: #333d43;
+  --table-stripe: #222a2e;
+  --table-head: #2c353b;
+  --accent: #f2b134;
+  --accent-strong: #f6c25a;
+  --accent-soft: #3d3220;
+  --on-accent: #1d2327;
+  --above: #f2b134;
+  --below: #6aaedb;
+  --structure: #6aaedb;
+  --link: #8cc2e6;
+  --focus: #f2b134;
+  --bar-track: #2c353b;
+  --bar-fill: #6aaedb;
+  --row-hover: #2c353b;
+  --score-excellent-bg: #3d3220;
+  --score-excellent-fg: #f6c25a;
+  --score-good-bg: #1f3340;
+  --score-good-fg: #8cc2e6;
+  color-scheme: dark;
+}
+
+[data-theme="dark"] {
+  /* Overcast is the only theme; dark resolves to the same values. */
+  --paper: #1d2327;
+  --paper-raised: #262e33;
+  --paper-sunken: #191e21;
+  --chrome: #1d2327;
+  --chrome-fg: #eef1f2;
+  --chrome-fg-muted: #a1acb2;
+  --chrome-hairline: #384349;
+  --fg: #eef1f2;
+  --fg-muted: #c6cdd1;
+  --fg-subtle: #a1acb2;
+  --hairline: #384349;
+  --hairline-strong: #4a5760;
+  --table-hairline: #333d43;
+  --table-stripe: #222a2e;
+  --table-head: #2c353b;
+  --accent: #f2b134;
+  --accent-strong: #f6c25a;
+  --accent-soft: #3d3220;
+  --on-accent: #1d2327;
+  --above: #f2b134;
+  --below: #6aaedb;
+  --structure: #6aaedb;
+  --link: #8cc2e6;
+  --focus: #f2b134;
+  --bar-track: #2c353b;
+  --bar-fill: #6aaedb;
+  --row-hover: #2c353b;
+  --score-excellent-bg: #3d3220;
+  --score-excellent-fg: #f6c25a;
+  --score-good-bg: #1f3340;
+  --score-good-fg: #8cc2e6;
+  color-scheme: dark;
+}
+
+/* ---- Base ------------------------------------------------------------------ */
+body {
+  background: var(--color-paper);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+}
+
+/* ALL numeric data (points, scores, ranks, heights) reads in the mono face.
+   Apply to the element that contains the figure, not whole tables. */
+.figures {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

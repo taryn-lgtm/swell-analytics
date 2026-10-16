@@ -1,0 +1,215 @@
+# WSL Men's Championship Tour — 2024 season specification
+#
+# Inherits Era A shared rules from ./era_a.yaml (same directory).
+# Only season-specific facts and overrides appear below.
+#
+# RULES FOR THIS FILE
+#   - Every fact carries a `source`. A fact with `source: null` is NOT verified.
+#   - Never write a plausible value. Write `null` and a `todo`.
+
+season: 2024
+tour: mens_championship_tour
+inherits: era_a
+spec_status: draft          # draft | signed_off
+last_updated: 2026-07-25
+
+sources:
+  calendar:
+    url: https://www.worldsurfleague.com/events/2024/ct?all=1
+    captured: 2026-07-25
+  final_rankings:
+    url: https://www.worldsurfleague.com/athletes/tour/mct?year=2024
+    captured: 2026-07-25
+  rulebook:
+    file: docs/format-spec/rulebooks/2024_WSL_Rule_Book_clean_01252025.pdf
+    last_updated: 2025-01-25
+
+world_champion:
+  surfer: John John Florence
+  country: Hawaii
+  source: https://www.worldsurfleague.com/athletes/tour/mct?year=2024
+  note: >
+    Recorded explicitly, never derived from points. Rank 1 on the published
+    final rankings, which reallocate the top five by WSL Finals placing under
+    Rule 1.05(e). The points leader is frequently NOT the champion.
+
+cut:
+  exists: true
+  after_event: 5
+  source: null
+  todo: >
+    Inferred from the calendar position of the Margaret River Pro and confirmed
+    consistent with the throwaway validation across the full field. NOT yet
+    confirmed from a published WSL announcement. Confirm before sign-off.
+
+throwaway:
+  eligible_event_numbers: [1..5]
+  note: >
+    5 pre-cut events, so Rule 1.09(c)'s seven-event condition is NOT
+    met. The season-total throwaway is nonetheless applied in the published
+    rankings — see ../THROWAWAY_DERIVATION.md.
+
+# ---------------------------------------------------------------------------
+# Events
+#
+# Read from the WSL calendar page on 2026-07-25. Considered verified.
+# ---------------------------------------------------------------------------
+
+events:
+  - number: 1
+    wsl_event_id: 196
+    name: Lexus Pipe Pro
+    venue: Pipeline
+    location: Oahu, Hawaii, United States
+    start_date: 2024-01-29
+    end_date: 2024-02-10
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2024/ct/196/lexus-pipe-pro/results
+
+  - number: 2
+    wsl_event_id: 197
+    name: Hurley Pro Sunset Beach
+    venue: Sunset Beach
+    location: Oahu, Hawaii, United States
+    start_date: 2024-02-12
+    end_date: 2024-02-22
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2024/ct/197/hurley-pro-sunset-beach/results
+
+  - number: 3
+    wsl_event_id: 198
+    name: MEO Rip Curl Pro Portugal
+    venue: Supertubos
+    location: Peniche, Portugal
+    start_date: 2024-03-06
+    end_date: 2024-03-16
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2024/ct/198/meo-rip-curl-pro-portugal/results
+
+  - number: 4
+    wsl_event_id: 199
+    name: Rip Curl Pro Bells Beach
+    venue: Bells Beach
+    location: Victoria, Australia
+    start_date: 2024-03-26
+    end_date: 2024-04-05
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2024/ct/199/rip-curl-pro-bells-beach/results
+
+  - number: 5
+    wsl_event_id: 200
+    name: Western Australia Margaret River Pro
+    venue: Main Break
+    location: Margaret River, Western Australia, Australia
+    start_date: 2024-04-11
+    end_date: 2024-04-21
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2024/ct/200/western-australia-margaret-river-pro/results
+    note: Final event before the mid-season cut, pending confirmation of cut timing.
+
+  - number: 6
+    wsl_event_id: 201
+    name: SHISEIDO Tahiti Pro
+    venue: Teahupo'o
+    location: Tahiti, French Polynesia
+    start_date: 2024-05-22
+    end_date: 2024-05-31
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2024/ct/201/shiseido-tahiti-pro/results
+
+  - number: 7
+    wsl_event_id: 202
+    name: Surf City El Salvador Pro
+    venue: Punta Roca
+    location: La Libertad, El Salvador
+    start_date: 2024-06-06
+    end_date: 2024-06-15
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2024/ct/202/surf-city-el-salvador-pro/results
+
+  - number: 8
+    wsl_event_id: 203
+    name: VIVO Rio Pro
+    venue: Saquarema
+    location: Rio de Janeiro, Brazil
+    start_date: 2024-06-22
+    end_date: 2024-06-30
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2024/ct/203/vivo-rio-pro/results
+
+  - number: 9
+    wsl_event_id: 204
+    name: Corona Fiji Pro
+    venue: Cloudbreak
+    location: Fiji
+    start_date: 2024-08-20
+    end_date: 2024-08-29
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2024/ct/204/corona-fiji-pro/results
+
+  - number: 10
+    wsl_event_id: 205
+    name: Lexus WSL Finals
+    venue: Lower Trestles
+    location: San Clemente, California, United States
+    start_date: 2024-09-06
+    end_date: 2024-09-14
+    format: finals_five
+    round_structure: wsl_finals
+    awards_ranking_points: false
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2024/ct/205/lexus-wsl-finals/results
+    note: >
+      Reallocates the top five ranking positions rather than awarding points.
+      Final Match is best of three heats.
+
+# ---------------------------------------------------------------------------
+# Expected values — consumed directly by the audit suite
+# ---------------------------------------------------------------------------
+
+expected:
+  event_count: 10
+  regular_season_events: 9
+  pool_events: 0
+  cancelled_events: 0
+  abandoned_events: 0
+  placeholder_dates_permitted: false
+
+acceptance:
+  reconstruction_test:
+    passed: false
+    description: >
+      Using only the rules in this file plus published event placings, rebuild
+      the published 2024 final standings for every surfer, not just the top
+      five. Not signed off until that reconciles exactly.
+    blockers:
+      - Confirm the mid-season cut position from a published source
+      - Resolve whether cut-eliminated surfers receive a throwaway

@@ -1,0 +1,230 @@
+# WSL Men's Championship Tour — 2022 season specification
+#
+# Inherits Era A shared rules from ./era_a.yaml (same directory).
+# Only season-specific facts and overrides appear below.
+#
+# RULES FOR THIS FILE
+#   - Every fact carries a `source`. A fact with `source: null` is NOT verified.
+#   - Never write a plausible value. Write `null` and a `todo`.
+
+season: 2022
+tour: mens_championship_tour
+inherits: era_a
+spec_status: draft          # draft | signed_off
+last_updated: 2026-07-25
+
+sources:
+  calendar:
+    url: https://www.worldsurfleague.com/events/2022/ct?all=1
+    captured: 2026-07-25
+  final_rankings:
+    url: https://www.worldsurfleague.com/athletes/tour/mct?year=2022
+    captured: 2026-07-25
+  rulebook:
+    file: docs/format-spec/rulebooks/2022_WSL_Rule_Book_-_August_31__2022_-_Final.pdf
+    last_updated: 2022-08-31
+
+world_champion:
+  surfer: Filipe Toledo
+  country: Brazil
+  source: https://www.worldsurfleague.com/athletes/tour/mct?year=2022
+  note: >
+    Recorded explicitly, never derived from points. Rank 1 on the published
+    final rankings, which reallocate the top five by WSL Finals placing under
+    Rule 1.05(e). The points leader is frequently NOT the champion.
+
+cut:
+  exists: true
+  after_event: 5
+  source: null
+  todo: >
+    Inferred from the calendar position of the Margaret River Pro and confirmed
+    consistent with the throwaway validation across the full field. NOT yet
+    confirmed from a published WSL announcement. Confirm before sign-off.
+
+throwaway:
+  eligible_event_numbers: [1..5]
+  note: >
+    5 pre-cut events, so Rule 1.09(c)'s seven-event condition is NOT
+    met. The season-total throwaway is nonetheless applied in the published
+    rankings — see ../THROWAWAY_DERIVATION.md.
+
+# ---------------------------------------------------------------------------
+# Events
+#
+# Read from the WSL calendar page on 2026-07-25. Considered verified.
+#
+# WARNING: event IDs are NOT in event order this season.
+# ---------------------------------------------------------------------------
+
+events:
+  - number: 1
+    wsl_event_id: 2
+    name: Billabong Pro Pipeline
+    venue: Pipeline
+    location: Oahu, Hawaii, United States
+    start_date: 2022-01-29
+    end_date: 2022-02-10
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2022/ct/2/billabong-pro-pipeline/results
+
+  - number: 2
+    wsl_event_id: 3
+    name: Hurley Pro Sunset Beach
+    venue: Sunset Beach
+    location: Oahu, Hawaii, United States
+    start_date: 2022-02-11
+    end_date: 2022-02-23
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2022/ct/3/hurley-pro-sunset-beach/results
+
+  - number: 3
+    wsl_event_id: 6
+    name: MEO Portugal Pro
+    venue: Supertubos
+    location: Peniche, Portugal
+    start_date: 2022-03-03
+    end_date: 2022-03-13
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2022/ct/6/meo-portugal-pro/results
+
+  - number: 4
+    wsl_event_id: 9
+    name: Rip Curl Pro Bells Beach
+    venue: Bells Beach
+    location: Victoria, Australia
+    start_date: 2022-04-10
+    end_date: 2022-04-20
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2022/ct/9/rip-curl-pro-bells-beach/results
+
+  - number: 5
+    wsl_event_id: 5
+    name: Margaret River Pro
+    venue: Main Break
+    location: Margaret River, Western Australia, Australia
+    start_date: 2022-04-24
+    end_date: 2022-05-04
+    format: bracket
+    round_structure: pre_cut_36
+    is_post_cut: false
+    throwaway_eligible: true
+    results_url: https://www.worldsurfleague.com/events/2022/ct/5/margaret-river-pro/results
+    note: Final event before the mid-season cut, pending confirmation of cut timing.
+
+  - number: 6
+    wsl_event_id: 8
+    name: Quiksilver/ROXY Pro G-Land
+    venue: G-Land
+    location: Banyuwangi, Indonesia
+    start_date: 2022-05-28
+    end_date: 2022-06-06
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2022/ct/8/quiksilverroxy-pro-g-land/results
+
+  - number: 7
+    wsl_event_id: 12
+    name: Surf City El Salvador Pro
+    venue: Punta Roca
+    location: La Libertad, El Salvador
+    start_date: 2022-06-12
+    end_date: 2022-06-20
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2022/ct/12/surf-city-el-salvador-pro/results
+
+  - number: 8
+    wsl_event_id: 7
+    name: Oi Rio Pro
+    venue: Saquarema
+    location: Rio de Janeiro, Brazil
+    start_date: 2022-06-23
+    end_date: 2022-06-30
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2022/ct/7/oi-rio-pro/results
+
+  - number: 9
+    wsl_event_id: 4
+    name: Corona Open J-Bay
+    venue: Jeffreys Bay
+    location: Eastern Cape, South Africa
+    start_date: 2022-07-12
+    end_date: 2022-07-21
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2022/ct/4/corona-open-j-bay/results
+
+  - number: 10
+    wsl_event_id: 11
+    name: Outerknown Tahiti Pro
+    venue: Teahupo'o
+    location: Tahiti, French Polynesia
+    start_date: 2022-08-11
+    end_date: 2022-08-21
+    format: bracket
+    round_structure: post_cut_24
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2022/ct/11/outerknown-tahiti-pro/results
+
+  - number: 11
+    wsl_event_id: 10
+    name: Rip Curl WSL Finals
+    venue: Lower Trestles
+    location: San Clemente, California, United States
+    start_date: 2022-09-08
+    end_date: 2022-09-16
+    format: finals_five
+    round_structure: wsl_finals
+    awards_ranking_points: false
+    is_post_cut: true
+    throwaway_eligible: false
+    results_url: https://www.worldsurfleague.com/events/2022/ct/10/rip-curl-wsl-finals/results
+    note: >
+      Reallocates the top five ranking positions rather than awarding points.
+      Final Match is best of three heats.
+
+# ---------------------------------------------------------------------------
+# Expected values — consumed directly by the audit suite
+# ---------------------------------------------------------------------------
+
+expected:
+  event_count: 11
+  regular_season_events: 10
+  pool_events: 0
+  cancelled_events: 0
+  abandoned_events: 0
+  placeholder_dates_permitted: false
+
+acceptance:
+  reconstruction_test:
+    passed: false
+    description: >
+      Using only the rules in this file plus published event placings, rebuild
+      the published 2022 final standings for every surfer, not just the top
+      five. Not signed off until that reconciles exactly.
+    blockers:
+      - Confirm the mid-season cut position from a published source
+      - Resolve whether cut-eliminated surfers receive a throwaway

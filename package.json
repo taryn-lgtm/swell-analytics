@@ -1,0 +1,45 @@
+{
+  "name": "swell-analytics",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "migrate": "tsx scripts/migrate.ts",
+    "collect": "tsx scripts/collect_event.ts",
+    "collect-heats": "tsx scripts/collect_heats.ts",
+    "register-artefacts": "tsx scripts/register_artefacts.ts",
+    "collect-popups": "tsx scripts/collect_heat_popups.ts",
+    "collect-page": "tsx scripts/collect_page.ts",
+    "ingest-popups": "tsx scripts/ingest_popups.ts",
+    "ingest-champion": "tsx scripts/ingest_champion.ts",
+    "ingest-finals": "tsx scripts/ingest_finals.ts",
+    "finals-manifest": "tsx scripts/write_finals_manifest.ts",
+    "final-check": "bash scripts/final_check.sh"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.103.3",
+    "@types/papaparse": "^5.5.2",
+    "next": "16.2.3",
+    "papaparse": "^5.5.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.3",
+    "js-yaml": "^4.3.0",
+    "playwright": "^1.62.1",
+    "supabase": "^2.110.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}
