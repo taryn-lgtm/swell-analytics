@@ -11,9 +11,9 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   // absolute: the layout's title template applies to child segments, not to
   // the root page, so without it this variant would title differently from `/`.
-  title: { absolute: "Trim leaderboard" },
+  title: { absolute: "Swell Analytics" },
   description:
-    "How far each Championship Tour surfer beats what the round expects of them, heat by heat.",
+    "Independent analytics for the WSL men's Championship Tour: every heat scored against what the round expects, with rankings, surfer records and head-to-head comparisons.",
   alternates: { canonical: "/?all=1" },
   robots: { index: false },
 };

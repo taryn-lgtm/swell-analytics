@@ -10,9 +10,9 @@ import HomeView from "@/components/views/HomeView";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Trim leaderboard",
+  title: { absolute: "Swell Analytics" },
   description:
-    "How far each Championship Tour surfer beats what the round expects of them, heat by heat.",
+    "Independent analytics for the WSL men's Championship Tour: every heat scored against what the round expects, with rankings, surfer records and head-to-head comparisons.",
 };
 
 export default function HomePage() {
