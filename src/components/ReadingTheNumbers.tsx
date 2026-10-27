@@ -21,13 +21,13 @@ export default function ReadingTheNumbers() {
       >
         How to read the numbers
       </p>
-      <p className="mt-2 max-w-3xl text-heading leading-snug text-fg">
-        <strong className={term}>Datum</strong> is the score a typical CT surfer posts in
-        that round. <strong className={term}>Trim</strong> is how far above or below Datum a
+      <p className="mt-2 max-w-[72ch] text-heading leading-snug text-fg">
+        <strong className={term}>Datum</strong>{" "}is the score a typical CT surfer posts in
+        that round. <strong className={term}>Trim</strong>{" "}is how far above or below Datum a
         surfer has been scoring lately. Plus means beating the bar, minus means falling
         short.
       </p>
-      <div className="mt-3 max-w-3xl space-y-2 border-t border-hairline pt-3 text-body-sm text-fg-muted">
+      <div className="mt-3 max-w-[72ch] space-y-2 border-t border-hairline pt-3 text-body-sm text-fg-muted">
         <p>
           Every heat score on this site is measured against{" "}
           <strong className={term}>Datum</strong>: the heat total a typical Championship Tour

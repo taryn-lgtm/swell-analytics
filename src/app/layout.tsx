@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import { getSeasons, seasonsListLabel } from "@/lib/queries/seasons";
+import { getResultsThrough, getSeasons, seasonsListLabel } from "@/lib/queries/seasons";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 /*
@@ -69,7 +69,8 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const seasonsLabel = seasonsListLabel(await getSeasons());
+  const [seasons, resultsThrough] = await Promise.all([getSeasons(), getResultsThrough()]);
+  const seasonsLabel = seasonsListLabel(seasons);
   return (
     <html
       lang="en"
@@ -84,9 +85,16 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col bg-paper text-fg antialiased">
-        <SiteHeader seasonsLabel={seasonsLabel} />
-        <main className="flex-1">{children}</main>
-        <SiteFooter seasonsLabel={seasonsLabel} />
+        {/* First focusable element: keyboard and screen-reader users can jump
+            past the nav. Hidden until focused (globals.css .skip-link). */}
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
+        <SiteHeader seasonsLabel={seasonsLabel} resultsThrough={resultsThrough} />
+        <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
+          {children}
+        </main>
+        <SiteFooter seasonsLabel={seasonsLabel} resultsThrough={resultsThrough} />
       </body>
     </html>
   );

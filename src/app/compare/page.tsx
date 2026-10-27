@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import type { Metadata } from "next";
 import Container from "@/components/ui/Container";
 import EmptyState from "@/components/ui/EmptyState";
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
   title: "Compare surfers",
   description:
     "Two Championship Tour surfers side by side: heat wins by heat size, scores against the round's typical score, head-to-head meetings, venues and event finishes.",
+  ...pageMeta("/compare"),
 };
 
 export default async function ComparePage() {
@@ -55,7 +57,7 @@ export default async function ComparePage() {
         <h1 className="mt-4 font-serif text-[clamp(2.6rem,7vw,5.5rem)] font-semibold italic leading-[1.06] tracking-[0.005em] text-fg">
           Two surfers, side by side.
         </h1>
-        <p className="mt-5 max-w-3xl text-[1.05rem] leading-relaxed text-fg-muted">
+        <p className="mt-5 max-w-[72ch] text-[1.05rem] leading-relaxed text-fg-muted">
           Pick two surfers. Every figure shows how many heats it rests on, heat wins are split by
           how many surfers were in the heat, and scores are measured against Datum, the typical
           score for that round, because scores rise as an event goes on. The page opens on the
@@ -66,9 +68,9 @@ export default async function ComparePage() {
         <CompareTool data={data} defaultA={defaultA} defaultB={defaultB} />
       </div>
       <ProvenancePanel>
-        <span className="figures">{data.heats.length.toLocaleString("en-GB")}</span> heat entries
-        from <span className="figures">{data.events.length}</span> events, including the WSL
-        Finals, and <span className="figures">{data.placings.length}</span> regular-season event
+        <span className="figures">{data.heats.length.toLocaleString("en-GB")}</span>{" "}heat entries
+        from <span className="figures">{data.events.length}</span>{" "}events, including the WSL
+        Finals, and <span className="figures">{data.placings.length}</span>{" "}regular-season event
         results. Wins use the published heat placing. Datum residuals exist for heats with a
         published heat total; the few without one are counted as heats but not scored.
       </ProvenancePanel>

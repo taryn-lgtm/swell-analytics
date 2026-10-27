@@ -1,4 +1,5 @@
 import ScrollBox from "@/components/ui/ScrollBox";
+import { pageMeta } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,7 +13,8 @@ import CountryTag from "@/components/CountryTag";
 import ChampionBadge from "@/components/ChampionBadge";
 import HeatSheet, { type RoundData } from "@/components/HeatSheet";
 import ProvenancePanel, { ProvenanceInline } from "@/components/Provenance";
-import { EM_DASH, formatPoints, ordinal } from "@/lib/format";
+import { EM_DASH, formatPoints, ordinal, plural } from "@/lib/format";
+import { TITLE_MATCH_ROUND_ORDER, displayHeatNumber, seriesResult, titleMatchNote } from "@/lib/finals";
 import { TRIM_MIN_HEATS, formatPriorWeight, formatTrim, formatTrimDelta } from "@/lib/trim";
 import { byCodepoint, getAllEventParams, getEventPage, type EventPage, type FieldRow } from "@/lib/queries/event";
 
@@ -45,6 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${ev.name} ${ev.seasonYear}`,
     description: `${ev.name}, ${ev.seasonYear}: the draw, every heat as published, and how Trim moved across the event.`,
+    ...pageMeta(`/events/${slug}`, "article"),
   };
 }
 
@@ -89,8 +92,14 @@ export default async function EventRoute({ params }: Props) {
     roundKey: r.roundId,
     roundName: r.name,
     countingRides: r.countingRides,
+    // The Title Match's format and result, under its title: a one-heat 2025
+    // final is the rule working, not a missing heat (17 October 2026).
+    note:
+      isFinals && r.roundOrder === TITLE_MATCH_ROUND_ORDER
+        ? titleMatchNote(ev.seasonYear, seriesResult(r.heats))
+        : null,
     heats: r.heats.map((h) => ({
-      heatNumber: h.heatNumber,
+      heatNumber: displayHeatNumber(ev.kind, r.roundOrder, h.heatNumber),
       venueName: h.venueName,
       waveHeight: h.waveHeight,
       wind: h.wind,
@@ -126,6 +135,13 @@ export default async function EventRoute({ params }: Props) {
             {ev.occursAfterCut && !isFinals && <Badge variant="outline">Post-cut</Badge>}
           </div>
           <h1 className="mt-4 font-serif text-[clamp(2.4rem,6.5vw,5rem)] font-semibold italic leading-[1.06] tracking-[0.005em] text-fg">{ev.name}</h1>
+          {ev.wslUrl && (
+            <p className="mt-1 text-body-sm">
+              <a href={ev.wslUrl} className="inline-flex min-h-6 items-center text-link underline" rel="noopener" target="_blank">
+                Official results on worldsurfleague.com
+              </a>
+            </p>
+          )}
           <p className="mt-2 text-body-sm text-fg-muted">
             <span data-v="venues">
               {ev.heatVenues.length > 0
@@ -142,7 +158,7 @@ export default async function EventRoute({ params }: Props) {
               <>
                 {" "}
                 <ProvenanceInline>
-                  · venue unknown for <span data-v="venue-unknown">{ev.heatsWithoutVenue}</span> of{" "}
+                  · venue unknown for <span data-v="venue-unknown">{ev.heatsWithoutVenue}</span>{" "}of{" "}
                   {ev.heatCount} heats
                 </ProvenanceInline>
               </>
@@ -203,7 +219,10 @@ export default async function EventRoute({ params }: Props) {
               {opening.heats.map((h) => (
                 <div key={h.heatId} data-draw-heat className="border-t border-hairline pt-1.5">
                   <p data-v="draw-label" className="figures text-caption font-semibold tracking-[0.04em] text-fg-muted">
-                    {h.heatNumber != null ? `Heat ${String(h.heatNumber).padStart(2, "0")}` : "Heat"}
+                    {(() => {
+                      const n = displayHeatNumber(ev.kind, opening.roundOrder, h.heatNumber);
+                      return n != null ? `Heat ${String(n).padStart(2, "0")}` : "Heat";
+                    })()}
                   </p>
                   <ul className="text-body-sm">
                     {[...h.entries]
@@ -229,23 +248,23 @@ export default async function EventRoute({ params }: Props) {
             />
           )}
           <ProvenancePanel>
-            the {opening ? <>{opening.name.toLowerCase()} heats as surfed, names in alphabetical order (no seed is stored), and </> : null}
-            every surfer in <code className="figures">heat_entries</code> at this event
+            the {opening ? <>{opening.name} {plural(opening.heats.length, "heat")} as surfed, names in alphabetical order (no seed is stored), and </> : null}
+            every surfer in <code className="figures">heat_entries</code>{" "}at this event
             {isFinals ? (
               <>
                 , with the published <code className="figures">finished_position</code>. The WSL Finals awards no
-                ranking points and has no <code className="figures">event_entries</code> rows.
+                ranking points and has no <code className="figures">event_entries</code>{" "}rows.
               </>
             ) : (
               <>
-                , joined to the <span className="figures">{ev.entryRowCount}</span> rows{" "}
-                <code className="figures">event_entries</code> holds for it — the season&apos;s final rankings
+                , joined to the <span className="figures">{ev.entryRowCount}</span>{" "}rows{" "}
+                <code className="figures">event_entries</code>{" "}holds for it — the season&apos;s final rankings
                 page, which lists placing, points, participation and status. Points are published, never derived
                 from a placing.
                 {surfedNoEntry > 0 && (
                   <>
                     {" "}
-                    <span className="figures">{surfedNoEntry}</span> who surfed have no row there and show as
+                    <span className="figures">{surfedNoEntry}</span>{" "}who surfed have no row there and show as
                     &ldquo;no entry row&rdquo;: the rankings page does not list them, and their participation is
                     not guessed.
                   </>
@@ -253,7 +272,7 @@ export default async function EventRoute({ params }: Props) {
                 {listedNotSurfed > 0 && (
                   <>
                     {" "}
-                    <span className="figures">{listedNotSurfed}</span> listed there surfed no heat, shown with
+                    <span className="figures">{listedNotSurfed}</span>{" "}listed there surfed no heat, shown with
                     their published status.
                   </>
                 )}
@@ -276,9 +295,9 @@ export default async function EventRoute({ params }: Props) {
             <EmptyState title="No rounds returned for this event" />
           )}
           <ProvenancePanel>
-            <code className="figures">rounds</code>, <code className="figures">heats</code> and{" "}
+            <code className="figures">rounds</code>, <code className="figures">heats</code>{" "}and{" "}
             <code className="figures">heat_entries</code>, ordered by the stored{" "}
-            <code className="figures">round_order</code> — never generated, so a round WSL does not publish as heats
+            <code className="figures">round_order</code>{" "}— never generated, so a round WSL does not publish as heats
             is absent rather than invented. Placings are the published <code className="figures">position</code>,
             never a re-sort by total. The counting rides are the stored <code className="figures">waves.counted</code>{" "}
             flag in{" "}
@@ -287,8 +306,8 @@ export default async function EventRoute({ params }: Props) {
             the rides column is a heat whose rides are not loaded, not a surfer who caught nothing
             {ev.heatEntriesWithoutTotal > 0 && (
               <>
-                ; <span className="figures">{ev.heatEntriesWithoutTotal}</span> of{" "}
-                <span className="figures">{ev.heatEntryCount}</span> entries carry no published heat total and show an
+                ; <span className="figures">{ev.heatEntriesWithoutTotal}</span>{" "}of{" "}
+                <span className="figures">{ev.heatEntryCount}</span>{" "}entries carry no published heat total and show an
                 em-dash, never zero
               </>
             )}
@@ -359,18 +378,18 @@ export default async function EventRoute({ params }: Props) {
             />
           )}
           <ProvenancePanel>
-            <code className="figures">trim_before</code> of each surfer&apos;s first heat at this event and{" "}
-            <code className="figures">trim_after</code> of their last, for the{" "}
-            <span data-v="movers-n" className="figures">{movers.length}</span> of{" "}
-            <span className="figures">{ev.surfedCount}</span> surfers with a rated heat here
+            <code className="figures">trim_before</code>{" "}of each surfer&apos;s first heat at this event and{" "}
+            <code className="figures">trim_after</code>{" "}of their last, for the{" "}
+            <span data-v="movers-n" className="figures">{movers.length}</span>{" "}of{" "}
+            <span className="figures">{ev.surfedCount}</span>{" "}surfers with a rated heat here
             {surfedWithoutTrim > 0 && (
               <>
-                ; the other <span className="figures">{surfedWithoutTrim}</span> surfed no heat with a published total,
+                ; the other <span className="figures">{surfedWithoutTrim}</span>{" "}surfed no heat with a published total,
                 so there is nothing to rate
               </>
             )}
             . The change is the one subtraction on the page. Prior is the share of the rating still carried by the
-            starting prior of zero; below <span className="figures">{TRIM_MIN_HEATS}</span> heats it is the majority,
+            starting prior of zero; below <span className="figures">{TRIM_MIN_HEATS}</span>{" "}heats it is the majority,
             and the Trim after is shown faint. Trim is rated on the round alone, so &ldquo;movement&rdquo; is against
             what the round usually yields, not these conditions or this break.
           </ProvenancePanel>

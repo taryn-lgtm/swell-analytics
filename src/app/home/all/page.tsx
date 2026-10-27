@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import type { Metadata } from "next";
 import HomeView from "@/components/views/HomeView";
 
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
   title: { absolute: "Swell Analytics" },
   description:
     "Independent analytics for the WSL men's Championship Tour: every heat scored against what the round expects, with rankings, surfer records and head-to-head comparisons.",
-  alternates: { canonical: "/?all=1" },
+  // The full-list variant of `/`: canonical to `/`, which it duplicates.
+  ...pageMeta("/"),
   robots: { index: false },
 };
 

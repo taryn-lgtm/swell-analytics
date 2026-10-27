@@ -34,6 +34,8 @@ export interface RoundData {
   /** rounds.counting_rides -- belongs to the round, not the event (trap 8). */
   countingRides: number | null;
   heats: HeatData[];
+  /** A line under the round title: the WSL Finals Title Match's format and series result. */
+  note?: string | null;
 }
 
 /**
@@ -59,6 +61,11 @@ export default function HeatSheet({ rounds }: { rounds: RoundData[] }) {
               {round.heats.length} {round.heats.length === 1 ? "heat" : "heats"}
             </span>
           </h3>
+          {round.note && (
+            <p data-v="round-note" className="-mt-1.5 mb-3 text-caption text-fg-subtle">
+              {round.note}
+            </p>
+          )}
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {round.heats.map((heat, i) => (
               <table

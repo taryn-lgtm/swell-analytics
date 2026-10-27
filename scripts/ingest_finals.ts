@@ -98,6 +98,7 @@ import {
   divisionsByHeat,
   heatOrder as heatOrderOf,
   titleMatchHeats,
+  titleMatchSeries,
 } from "./lib/parse_finals.ts";
 
 const SCRIPT_NAME = "scripts/ingest_finals.ts";
@@ -222,10 +223,85 @@ function main(): void {
   }
 
   const titleHeats = titleMatchHeats(markup, "mens");
-  console.log(`  men's Title Match ran ${titleHeats} heat(s) per the replay links; the page publishes 1`);
+
+  // ---- the Title Match series (added 17 October 2026) -------------------
+  // The page publishes EVERY series heat's total in the Title Match block
+  // (H1, H2, H3 per surfer) and names each heat in a replay link. Until this
+  // date only the first pair was read, so 2024's Heat 2 (JJF 18.13, Italo
+  // 16.30) stayed out of v2 while its bytes sat in this very file.
+  //
+  // Totals come from the series block. Placings come from each later heat's
+  // retained popup, which publishes them (athlete-place-N); they are never
+  // derived from the totals, and the two are required to agree.
+  const series = titleMatchSeries(markup, "mens");
+  if (series.heats.length !== titleHeats) {
+    fail(`the series block publishes ${series.heats.length} Title Match heat(s); the replay links say ${titleHeats}.`);
+  }
+  const tm = mens[3];
+  if (series.heats[0].wslHeatId !== tm.wslHeatId) {
+    fail(`series heat 1 is ${series.heats[0].wslHeatId} but the Title Match block is heat ${tm.wslHeatId}.`);
+  }
+  for (const a of tm.athletes) {
+    const t = series.heats[0].totals.get(a.wslAthleteId);
+    if (t === undefined || Math.abs(t - (a.heatTotal ?? NaN)) > 0.001) {
+      fail(`series heat 1 total for ${a.wslAthleteId} is ${t}; the athlete block says ${a.heatTotal}.`);
+    }
+  }
+  if (series.score !== null) {
+    const champ = tm.athletes.find((a) => a.position === 1);
+    const wins = (id: string) =>
+      series.heats.filter((h) => {
+        const [x, y] = [...h.totals.entries()].sort((p, q) => q[1] - p[1]);
+        return x[1] > y[1] && x[0] === id;
+      }).length;
+    if (champ && wins(champ.wslAthleteId) !== series.score[0]) {
+      fail(`"${series.resultText}" says the champion won ${series.score[0]} heat(s); the totals give ${wins(champ.wslAthleteId)}.`);
+    }
+  }
+
+  interface SeriesRow { heatNumber: number; wslHeatId: string; popupSha: string; entries: { athlete: string; position: number; total: number }[] }
+  const seriesRows: SeriesRow[] = [];
+  for (const h of series.heats.slice(1)) {
+    const popupPath = join(RAW_DIR, `${pageSlug}_heat_${h.wslHeatId}_popup.html`);
+    if (!existsSync(popupPath)) {
+      fail(
+        `Title Match heat ${h.heatNumber} (${h.wslHeatId}) is published but its popup is not retained, so its placings\n` +
+          `  are unread. Collect it:  npm run collect-popups -- --season ${season} --event ${eventNumber}`,
+      );
+    }
+    const popupRaw = readFileSync(popupPath);
+    const popup = popupRaw.toString("utf8");
+    const entries = [...h.totals.entries()].map(([athlete, total]) => {
+      const cls = new RegExp(`class="([^"]*hot-heat-athlete--athlete-id-${athlete}\\b[^"]*)"`).exec(popup)?.[1] ?? "";
+      const place = /hot-heat-athlete--athlete-place-(\d+)/.exec(cls)?.[1];
+      if (place === undefined) fail(`heat ${h.wslHeatId}: the popup publishes no placing for athlete ${athlete}.`);
+      return { athlete, position: Number(place), total };
+    });
+    const byPlace = [...entries].sort((a, b) => a.position - b.position);
+    if (byPlace.map((e) => e.position).join(",") !== "1,2" || byPlace[0].total <= byPlace[1].total) {
+      fail(`heat ${h.wslHeatId}: published placings ${JSON.stringify(entries)} disagree with the published totals.`);
+    }
+    seriesRows.push({
+      heatNumber: h.heatNumber,
+      wslHeatId: h.wslHeatId,
+      popupSha: createHash("sha256").update(popupRaw).digest("hex"),
+      entries,
+    });
+  }
+  const loadedTitleHeats = 1 + seriesRows.length;
+  console.log(
+    `  men's Title Match: ${series.resultText ?? "no result text"}; ${titleHeats} heat(s) per the replay links, ` +
+      `${loadedTitleHeats} loaded`,
+  );
 
   // ---- rows --------------------------------------------------------------
-  const heatRows = mens.map((h, i) => `  (${h.roundOrder}, ${i + 1}, ${q(h.wslHeatId)})`);
+  // Series heats follow the Title Match's own heat number (4), so that every
+  // ordering on (round_order, heat_number) -- Trim's included -- walks them in
+  // the order they were surfed: 4, 5, 6.
+  const heatRows = [
+    ...mens.map((h, i) => `  (${h.roundOrder}, ${i + 1}, ${q(h.wslHeatId)})`),
+    ...seriesRows.map((r) => `  (4, ${mens.length + r.heatNumber - 1}, ${q(r.wslHeatId)})`),
+  ];
   const entryRows: string[] = [];
   for (const h of mens) {
     for (const a of h.athletes) {
@@ -237,6 +313,12 @@ function main(): void {
       );
     }
   }
+  // finished_position is a property of the SURFER's Finals, so it lives on one
+  // row per surfer: the Title Match heat 1 rows above, as before. Series heats
+  // carry NULL. home.ts, event.ts and rankings.ts each refuse two rows.
+  const seriesEntryRows = seriesRows.flatMap((r) =>
+    r.entries.map((e) => `  (${q(r.wslHeatId)}, ${q(e.athlete)}, ${e.position}, ${e.total}, NULL::integer, NULL, '${r.popupSha}')`),
+  );
   const champion = mens[3].athletes.find((a) => a.position === 1);
   if (!champion) fail(`the Title Match has no first-placed surfer. Nothing generated.`);
   console.log(`  champion from the ladder: ${champion.shortName ?? champion.wslAthleteId} (${champion.wslAthleteId})`);
@@ -262,12 +344,14 @@ function main(): void {
 -- precedes each block (…-mens-… / …-womens-…), and the result is cross-checked
 -- below against the surfers ordinary men's CT events have already loaded.
 --
--- THE TITLE MATCH. Rulebook 1.06(e)(iv) says the Final Match is best of three
--- heats. This page renders ONE, and the replay links say the men's Title Match
--- actually ran ${titleHeats}. One heat is loaded because one heat is published; the
--- data_gaps row below records the rest rather than inventing it.
+-- THE TITLE MATCH. Rulebook 1.06(e)(iv): "The Final Match is best of three
+-- (3) heats." From 2025 the results page adds: "World #1 can win the World
+-- Title by winning Title Match Heat 1. Otherwise, Title Match is Best-of-3
+-- heats." The series block publishes every heat surfed -- here
+-- ${series.resultText ?? "no result text"}, ${titleHeats} heat(s) -- and all ${loadedTitleHeats} are loaded:
+-- totals from the series block, placings from each later heat's popup.
 --
--- Rows: 1 event, 4 rounds, 4 heats, 8 heat entries, 5 finalists.
+-- Rows: 1 event, 4 rounds, ${3 + loadedTitleHeats} heats, ${2 * (3 + loadedTitleHeats)} heat entries, 5 finalists.
 -- No waves (this page shape has none) and no event_entries (the Finals awards
 -- no ranking points; it reallocates the top five positions).
 -- =====================================================================
@@ -333,7 +417,27 @@ JOIN heats h ON h.round_id = r.id AND h.wsl_heat_id = v.wsl_heat_id
 JOIN surfers s ON s.wsl_athlete_id = v.wsl_athlete_id
 JOIN artefacts a ON a.sha256 = '${sha}'
 ON CONFLICT (heat_id, surfer_id) DO NOTHING;
-
+${
+  seriesEntryRows.length === 0
+    ? ""
+    : `
+-- --- Title Match heats after the first ----------------------------------
+-- Totals: the series block on the results page. Placings: each heat's own
+-- popup (athlete-place-N), so the popup is the artefact these rows cite.
+-- finished_position is NULL here; the surfer's Finals finish is on heat 1.
+INSERT INTO heat_entries (heat_id, surfer_id, position, heat_total, finished_position, progression_text, artefact_id)
+SELECT h.id, s.id, v.position, v.heat_total::numeric, v.finished_position, v.progression_text, a.id
+FROM (VALUES
+${seriesEntryRows.join(",\n")}
+) AS v(wsl_heat_id, wsl_athlete_id, position, heat_total, finished_position, progression_text, popup_sha)
+JOIN events e ON e.season_year = ${season} AND e.event_number = ${eventNumber}
+JOIN rounds r ON r.event_id = e.id
+JOIN heats h ON h.round_id = r.id AND h.wsl_heat_id = v.wsl_heat_id
+JOIN surfers s ON s.wsl_athlete_id = v.wsl_athlete_id
+JOIN artefacts a ON a.sha256 = v.popup_sha
+ON CONFLICT (heat_id, surfer_id) DO NOTHING;
+`
+}
 -- --- gaps -------------------------------------------------------------
 -- A gap row ASSERTS AN ABSENCE, so it is opened only while the absence is
 -- still true. This generator is re-runnable, and the same defect fixed in
@@ -347,11 +451,23 @@ ON CONFLICT (heat_id, surfer_id) DO NOTHING;
 ${waveGapSql(season, eventNumber)}
 INSERT INTO data_gaps (scope, season_year, field, reason, source_note)
 SELECT v.scope, v.yr, v.field, v.reason, v.note FROM (VALUES
-  ('round', ${season}, 'Title Match heats beyond the first, ${season} event ${eventNumber}', 'Rulebook 1.06(e)(iv) makes the Final Match best of three heats. The results page renders one Title Match row with one score pair, and the full-heat-replay links show the men''s Title Match ran ${titleHeats} heat(s). WHICH of those heats the loaded row represents is not stated anywhere on the page. One heat is loaded because one is published; the others are neither invented nor silently merged.', 'Replay link names on the retained page. Also: exactly one heat id is missing from the page between the men''s and women''s blocks in both seasons, so the page provably does not render every heat surfed.'),
-  ('event', ${season}, 'event_entries for ${season} event ${eventNumber}', 'The WSL Finals awards no ranking points — it reallocates the top five positions (spec: awards_ranking_points false). There is nothing to write to event_entries.points, and writing placings without points would misrepresent the event.', 'docs/format-spec/seasons/${season}.yaml, format: finals_five.')
+${
+  loadedTitleHeats < titleHeats
+    ? `  ('round', ${season}, 'Title Match heats beyond the first, ${season} event ${eventNumber}', 'The Title Match ran ${titleHeats} heat(s) per the replay links and ${loadedTitleHeats} are loaded.', 'Replay link names and the series block on the retained page.'),\n`
+    : ""
+}  ('event', ${season}, 'event_entries for ${season} event ${eventNumber}', 'The WSL Finals awards no ranking points — it reallocates the top five positions (spec: awards_ranking_points false). There is nothing to write to event_entries.points, and writing placings without points would misrepresent the event.', 'docs/format-spec/seasons/${season}.yaml, format: finals_five.')
 ) AS v(scope, yr, field, reason, note)
 WHERE NOT EXISTS (SELECT 1 FROM data_gaps d WHERE d.field = v.field AND d.closed_at IS NULL);
-
+${
+  loadedTitleHeats === titleHeats
+    ? `
+-- Every Title Match heat the page publishes is now loaded, so the gap opened
+-- on 19 August ("heats beyond the first") is no longer true. Closed, not deleted.
+UPDATE data_gaps SET closed_at = CURRENT_DATE
+WHERE field = 'Title Match heats beyond the first, ${season} event ${eventNumber}' AND closed_at IS NULL;
+`
+    : ""
+}
 -- --- assertions -------------------------------------------------------
 DO $$
 DECLARE
@@ -367,8 +483,8 @@ BEGIN
     JOIN events e ON e.id = r.event_id WHERE e.season_year = ${season} AND e.event_number = ${eventNumber};
 
   IF r_rounds  <> 4 THEN RAISE EXCEPTION 'rounds: expected 4, got %', r_rounds; END IF;
-  IF r_heats   <> 4 THEN RAISE EXCEPTION 'heats: expected 4, got %', r_heats; END IF;
-  IF r_entries <> 8 THEN RAISE EXCEPTION 'heat entries: expected 8, got %', r_entries; END IF;
+  IF r_heats   <> ${3 + loadedTitleHeats} THEN RAISE EXCEPTION 'heats: expected ${3 + loadedTitleHeats}, got %', r_heats; END IF;
+  IF r_entries <> ${2 * (3 + loadedTitleHeats)} THEN RAISE EXCEPTION 'heat entries: expected ${2 * (3 + loadedTitleHeats)}, got %', r_entries; END IF;
   IF r_surfers <> 5 THEN RAISE EXCEPTION 'finalists: expected 5, got %', r_surfers; END IF;
 
   -- THE DIVISION CHECK. Every finalist must be a surfer an ordinary men's CT
@@ -396,7 +512,7 @@ BEGIN
   FROM heat_entries he JOIN heats h ON h.id = he.heat_id JOIN rounds r ON r.id = h.round_id
   JOIN events e ON e.id = r.event_id
   WHERE e.season_year = ${season} AND e.event_number = ${eventNumber}
-    AND r.round_order = 4 AND he.position = 1;
+    AND r.round_order = 4 AND he.finished_position = 1;
   SELECT world_champion_surfer_id INTO champ_rankings FROM seasons WHERE year = ${season};
 
   IF champ_rankings IS NULL THEN
@@ -406,7 +522,7 @@ BEGIN
   END IF;
 
   SELECT full_name INTO champ_name FROM surfers WHERE id = champ_ladder;
-  RAISE NOTICE 'OK: 4 matches, 4 heats, 8 entries, 5 finalists. Title Match won by %, which matches the champion read from the final rankings.', champ_name;
+  RAISE NOTICE 'OK: 4 matches, ${3 + loadedTitleHeats} heats, ${2 * (3 + loadedTitleHeats)} entries, 5 finalists. Title Match won by %, which matches the champion read from the final rankings.', champ_name;
 END $$;
 
 COMMIT;

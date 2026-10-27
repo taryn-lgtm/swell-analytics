@@ -54,7 +54,9 @@ async function main() {
   for (const file of ["expected_random20.tsv", "expected_most_met8.tsv"]) {
     for (const line of readFileSync(join(dir, file), "utf8").split("\n").filter(Boolean)) {
       const [a, b] = line.split("|");
-      const got = render(a, b);
+      // The site draws negatives with U+2212 (17 Oct 2026); the SQL's text
+      // output a hyphen. Compare the value, not the glyph.
+      const got = render(a, b).replaceAll("\u2212", "-");
       if (got === line) {
         pass++;
       } else {

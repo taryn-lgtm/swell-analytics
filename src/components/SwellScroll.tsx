@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type * as THREEType from "three";
-import { roundHalfUp } from "@/lib/format";
+import { MINUS, roundHalfUp, withMinus } from "@/lib/format";
 
 /*
  * The scrolling swell from the Swell concept (docs/concepts/m4_site,
@@ -43,14 +43,14 @@ interface Beat {
 // Half-up, as every other figure on the site (decision 68): toFixed rounds the
 // binary float, so a stored 1.4705 could print as 1.470 here and 1.471 in the
 // timeline beside it.
-const f2 = (v: number) => roundHalfUp(v, 2).toFixed(2);
+const f2 = (v: number) => withMinus(roundHalfUp(v, 2).toFixed(2));
 const f3 = (v: number) => {
   const r = roundHalfUp(v, 3);
-  return (r < 0 ? "−" : "") + Math.abs(r).toFixed(3);
+  return (r < 0 ? MINUS : "") + Math.abs(r).toFixed(3);
 };
 const s2 = (v: number) => {
   const r = roundHalfUp(v, 2);
-  return (r > 0 ? "+" : r < 0 ? "−" : "") + Math.abs(r).toFixed(2);
+  return (r > 0 ? "+" : r < 0 ? MINUS : "") + Math.abs(r).toFixed(2);
 };
 const label = (h: SwellHeat) => `${h.event} ${h.year} · ${h.round}`;
 const where = (h: SwellHeat) =>
@@ -121,7 +121,12 @@ function cssVar(name: string, fallback: string): string {
 
 export default function SwellScroll({ fullName, heats, seasonsLabel }: { fullName: string; heats: SwellHeat[]; seasonsLabel: string }) {
   const beats = useMemo(() => beatsFor(heats), [heats]);
-  const [live, setLive] = useState(false);
+  // "pending" is the server render and first paint: the stage's height is
+  // reserved by CSS (motion-safe) so mounting the canvas moves nothing below
+  // it -- the 0.24 CLS of the 17 October audit. "text" is reduced motion or
+  // no WebGL; only a motion-on visitor without WebGL still sees one shift.
+  const [mode, setMode] = useState<"pending" | "live" | "text">("pending");
+  const live = mode === "live";
   const [beat, setBeat] = useState(-1);
   const [heatNow, setHeatNow] = useState<number | null>(null);
   const [tip, setTip] = useState<{ x: number; y: number; i: number } | null>(null);
@@ -133,8 +138,7 @@ export default function SwellScroll({ fullName, heats, seasonsLabel }: { fullNam
   // Decide on the client whether the 3D version runs. The server and a
   // motion-off or no-WebGL visitor get the text version.
   useEffect(() => {
-    if (reducedMotion() || !webglOk()) return;
-    const id = requestAnimationFrame(() => setLive(true));
+    const id = requestAnimationFrame(() => setMode(reducedMotion() || !webglOk() ? "text" : "live"));
     return () => cancelAnimationFrame(id);
   }, []);
 
@@ -146,7 +150,15 @@ export default function SwellScroll({ fullName, heats, seasonsLabel }: { fullNam
     let disposed = false;
     let cleanup = () => {};
 
-    import("three").then((THREE: typeof THREEType) => {
+    // Build the sea when the main thread is idle rather than during load:
+    // the geometry pass is the page's longest task.
+    const idle = (cb: () => void) => {
+      if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(cb, { timeout: 1500 });
+      else setTimeout(cb, 200);
+    };
+    import("three")
+      .then((THREE: typeof THREEType) => new Promise<typeof THREEType>((res) => idle(() => res(THREE))))
+      .then((THREE: typeof THREEType) => {
       if (disposed) return;
       const R = heats.map((h) => h.gap);
       const SX = 2;
@@ -192,7 +204,7 @@ export default function SwellScroll({ fullName, heats, seasonsLabel }: { fullNam
       try {
         renderer = new THREE.WebGLRenderer({ canvas: cvs, antialias: true });
       } catch {
-        setLive(false);
+        setMode("text");
         return;
       }
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -421,10 +433,10 @@ export default function SwellScroll({ fullName, heats, seasonsLabel }: { fullNam
     <section
       ref={sectionRef}
       aria-label={`${fullName}'s heats as a swell`}
-      className={live ? "relative h-[520svh]" : "relative"}
+      className={live ? "relative h-[520svh]" : mode === "pending" ? "relative motion-safe:h-[520svh]" : "relative"}
     >
-      {live ? (
-        <div className="sticky top-0 h-[100svh] overflow-hidden md:top-[3.75rem] md:h-[calc(100svh-3.75rem)]">
+      {mode !== "text" ? (
+        <div className={`${live ? "" : "hidden motion-safe:block "}sticky top-0 h-[100svh] overflow-hidden md:top-[3.75rem] md:h-[calc(100svh-3.75rem)]`}>
           <canvas ref={canvasRef} aria-hidden className="absolute inset-0 block h-full w-full touch-pan-y" />
           <div className="pointer-events-none absolute inset-0 mx-auto flex max-w-7xl flex-col justify-between px-4 pb-6 pt-5 sm:px-6">
             <p className="figures flex justify-between gap-4 text-caption text-fg-subtle">
@@ -480,7 +492,11 @@ export default function SwellScroll({ fullName, heats, seasonsLabel }: { fullNam
 
       {/* The four beats as text: the whole section for motion-off and no-WebGL
           visitors (and the prerendered HTML), screen-reader text otherwise. */}
-      <div className={live ? "sr-only" : "mx-auto max-w-7xl px-4 pt-10 sm:px-6"}>
+      <div
+        className={
+          live ? "sr-only" : mode === "pending" ? "mx-auto max-w-7xl px-4 pt-10 sm:px-6 motion-safe:sr-only" : "mx-auto max-w-7xl px-4 pt-10 sm:px-6"
+        }
+      >
         <p className="text-caption text-fg-subtle">The swell · four moments from {N} rated heats</p>
         <ol className="mt-3 grid gap-x-8 border-t border-fg sm:grid-cols-2 lg:grid-cols-4">
           {beats.map((x) => (

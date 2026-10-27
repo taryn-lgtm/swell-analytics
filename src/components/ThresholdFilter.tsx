@@ -40,7 +40,7 @@ export default function ThresholdFilter({
         </Chip>
       </nav>
       <span className="text-fg-subtle">
-        <span className="figures">{shown}</span> of <span className="figures">{total}</span> surfers
+        <span className="figures">{shown}</span>{" "}of <span className="figures">{total}</span>{" "}surfers
         shown
         {showingAll
           ? " — every surfer, including wildcards whose rating is mostly the starting prior"

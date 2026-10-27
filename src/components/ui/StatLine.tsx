@@ -58,6 +58,8 @@ export default function StatLine({
   bar,
   accent = false,
   align = "start",
+  term = false,
+  className = "",
 }: {
   label: string;
   /** Preformatted via lib/format — missing data arrives as an em-dash. */
@@ -69,46 +71,70 @@ export default function StatLine({
   /** Coral figure — leader/live/champion contexts only. */
   accent?: boolean;
   align?: "start" | "end";
+  /**
+   * Render as a term/description pair, for use as a direct child of a <dl>:
+   * the wrapper is the <div> a <dl> may hold, the label a <dt>, the figure
+   * a <dd>. axe definition-list, 17 October audit.
+   */
+  term?: boolean;
+  /** Classes for the wrapper (grid placement, padding). */
+  className?: string;
 }) {
   const alignCls = align === "end" ? "items-end text-right" : "items-start text-left";
-  return (
-    <div className={`flex min-w-0 flex-col gap-1 ${alignCls}`}>
-      <span className="text-caption font-medium tracking-[0.04em] text-fg-subtle">
-        {label}
+  const labelCls = "text-caption font-medium tracking-[0.04em] text-fg-subtle";
+  const figure = (
+    // flex-wrap with a nowrap unit: a long unit drops beneath the figure as
+    // one line instead of stacking a word per line ("pts / per / heat").
+    <span className="flex flex-wrap items-baseline gap-x-1.5">
+      <span
+        className={`figures font-medium leading-none ${VALUE_SIZE[size]} ${
+          accent ? "text-accent-strong" : "text-fg"
+        }`}
+      >
+        {value}
       </span>
-      <span className="flex items-baseline gap-1.5">
+      {unit && (
+        <span className="whitespace-nowrap text-caption font-medium text-fg-subtle">
+          {unit}
+        </span>
+      )}
+      {delta && (
         <span
-          className={`figures font-medium leading-none ${VALUE_SIZE[size]} ${
-            accent ? "text-accent-strong" : "text-fg"
+          className={`figures text-stat font-medium ${
+            delta.tone === "up"
+              ? "text-accent-strong"
+              : "text-fg-subtle"
           }`}
         >
-          {value}
+          <span aria-hidden>
+            {delta.tone === "up" ? "▲" : delta.tone === "down" ? "▼" : "—"}
+          </span>
+          {delta.tone !== "flat" && delta.text}
         </span>
-        {unit && (
-          <span className="text-caption font-medium text-fg-subtle">
-            {unit}
-          </span>
-        )}
-        {delta && (
-          <span
-            className={`figures text-stat font-medium ${
-              delta.tone === "up"
-                ? "text-accent-strong"
-                : "text-fg-subtle"
-            }`}
-          >
-            <span aria-hidden>
-              {delta.tone === "up" ? "▲" : delta.tone === "down" ? "▼" : "—"}
-            </span>
-            {delta.tone !== "flat" && delta.text}
-          </span>
-        )}
-      </span>
-      {bar && (
-        <div className="w-full min-w-16 pt-0.5">
-          <MeasureBar fraction={bar.fraction} accent={bar.accent} label={bar.label} />
-        </div>
       )}
+    </span>
+  );
+  const measure = bar && (
+    <div className="w-full min-w-16 pt-0.5">
+      <MeasureBar fraction={bar.fraction} accent={bar.accent} label={bar.label} />
+    </div>
+  );
+  if (term) {
+    return (
+      <div className={`flex min-w-0 flex-col gap-1 ${alignCls} ${className}`}>
+        <dt className={labelCls}>{label}</dt>
+        <dd className="m-0 flex w-full flex-col gap-1">
+          {figure}
+          {measure}
+        </dd>
+      </div>
+    );
+  }
+  return (
+    <div className={`flex min-w-0 flex-col gap-1 ${alignCls} ${className}`}>
+      <span className={labelCls}>{label}</span>
+      {figure}
+      {measure}
     </div>
   );
 }

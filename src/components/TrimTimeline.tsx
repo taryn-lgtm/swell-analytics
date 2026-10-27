@@ -1,5 +1,6 @@
 import ScrollBox from "@/components/ui/ScrollBox";
-import { formatDerivedSigned, formatScore, ordinal } from "@/lib/format";
+import { displayHeatNumber } from "@/lib/finals";
+import { fixed, formatDerivedSigned, withMinus, formatScore, ordinal } from "@/lib/format";
 import { formatPriorWeight, formatTrim } from "@/lib/trim";
 import type { SurferHeat } from "@/lib/queries/surfer";
 
@@ -105,8 +106,12 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
   const best = pts.reduce((a, b) => ((b.residual as number) > (a.residual as number) ? b : a));
   const worst = pts.reduce((a, b) => ((b.residual as number) < (a.residual as number) ? b : a));
 
+  const heatSuffix = (p: SurferHeat) => {
+    const n = displayHeatNumber(p.eventKind, p.roundOrder, p.heatNumber);
+    return n != null ? ` heat ${n}` : "";
+  };
   const label = (p: SurferHeat) =>
-    `${p.seasonYear} ${p.eventName} · ${p.roundName}${p.heatNumber != null ? ` heat ${p.heatNumber}` : ""}`;
+    `${p.seasonYear} ${p.eventName} · ${p.roundName}${heatSuffix(p)}`;
 
   return (
     <figure className="m-0">
@@ -148,7 +153,7 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
               fill="var(--color-fg-subtle)"
               fontSize={11}
             >
-              {v === 0 ? "0" : v.toFixed(1)}
+              {v === 0 ? "0" : fixed(v, 1)}
             </text>
           ))}
           {[rm, 0, -rm].map((v) => (
@@ -160,7 +165,7 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
               fill="var(--color-fg-subtle)"
               fontSize={11}
             >
-              {v === 0 ? "0" : v > 0 ? `+${v}` : String(v)}
+              {v === 0 ? "0" : v > 0 ? `+${v}` : withMinus(String(v))}
             </text>
           ))}
         </svg>
@@ -322,7 +327,7 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
                 {`Heat ${i + 1} — ${label(p)}\n` +
                   `Scored ${formatScore(p.heatTotal)} against an expected ${formatScore(p.expected)} (${
                     (p.residual as number) >= 0 ? "+" : ""
-                  }${(p.residual as number).toFixed(2)})\n` +
+                  }${fixed(p.residual as number, 2)})\n` +
                   `Trim ${formatTrim(p.trimBefore)} → ${formatTrim(p.trimAfter)} · prior weight ${formatPriorWeight(
                     p.priorWeight
                   )}` +
@@ -336,7 +341,7 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
 
       <figcaption className="mt-3 grid gap-x-8 gap-y-2 text-caption text-fg-subtle sm:grid-cols-2">
         <p>
-          <span className="font-semibold tracking-[0.04em]">Reading it</span> — the line
+          <span className="font-semibold tracking-[0.04em]">Reading it</span>{" "}— the line
           is Trim after each heat: points per heat above or below what that round usually yields.
           It starts at the prior, <span className="figures">0.000</span>, and moves by a decayed
           share of each heat&apos;s deviation. The bars below are those deviations, one per heat,
@@ -349,13 +354,13 @@ export default function TrimTimeline({ heats, fullName, priorBandAt = 0.5 }: Tri
           {best === worst ? (
             <>
               — one rated heat, so there is no best and worst to separate:{" "}
-              <span className="figures">{formatDerivedSigned(best.residual)}</span> at {label(best)}.
+              <span className="figures">{formatDerivedSigned(best.residual)}</span>{" "}at {label(best)}.
             </>
           ) : (
             <>
-              — best <span className="figures">{formatDerivedSigned(best.residual)}</span> at{" "}
+              — best <span className="figures">{formatDerivedSigned(best.residual)}</span>{" "}at{" "}
               {label(best)}; worst{" "}
-              <span className="figures">{formatDerivedSigned(worst.residual)}</span> at{" "}
+              <span className="figures">{formatDerivedSigned(worst.residual)}</span>{" "}at{" "}
               {label(worst)}.
             </>
           )}{" "}

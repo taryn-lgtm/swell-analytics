@@ -13,7 +13,8 @@
 // cases no longer discriminate and the test proves nothing.
 
 import assert from "node:assert/strict";
-import { exactMean, formatDerived, formatDerivedSigned } from "./format";
+import { countOf, exactMean, fixed, formatDerived, formatDerivedSigned } from "./format";
+import { formatTrim } from "./trim";
 
 let failures = 0;
 function check(name: string, fn: () => void) {
@@ -41,9 +42,15 @@ check("Slater 1-4' mean renders 9.94", () =>
 check("Vaast mean heat total renders 14.08", () =>
   assert.equal(formatDerived(exactMean(VAAST, 2)), "14.08"));
 check("a negative residual tie at six decimals rounds away from zero", () =>
-  assert.equal(formatDerivedSigned(exactMean([-2.141, -2.149], 6)), "-2.15"));
+  assert.equal(formatDerivedSigned(exactMean([-2.141, -2.149], 6)), "\u22122.15"));
 check("a positive residual tie at six decimals rounds away from zero", () =>
   assert.equal(formatDerivedSigned(exactMean([0.004, 0.006], 6)), "+0.01"));
+check("a negative derived figure uses U+2212, never a hyphen", () =>
+  assert.equal(formatDerived(-0.338, 3), "\u22120.338"));
+check("formatTrim uses U+2212", () => assert.equal(formatTrim(-0.4449), "\u22120.445"));
+check("fixed() uses U+2212 for a tick", () => assert.equal(fixed(-0.5, 1), "\u22120.5"));
+check("fixed() leaves zero and positives alone", () => assert.equal(fixed(0.5, 1) + fixed(0, 1), "0.50.0"));
+check("plural: 1 heat, 2 heats", () => assert.equal(countOf(1, "heat") + "|" + countOf(2, "heat"), "1 heat|2 heats"));
 check("an empty population has no mean", () => assert.equal(exactMean([], 2), null));
 
 // ---- Part B: the control — the old float sum must fail these ---------

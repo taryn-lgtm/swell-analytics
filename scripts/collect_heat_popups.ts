@@ -53,9 +53,9 @@ import { join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Browser, Page } from "playwright";
 import { MANIFEST_DIR, RAW_DIR, REPO_ROOT, fail, sleep } from "./lib/retain.ts";
-import { loadEventManifest, type RoundFromManifest } from "./lib/manifest.ts";
+import { loadEventManifest, type RoundFromManifest, type SeriesFollowOn } from "./lib/manifest.ts";
 import { verifyControls } from "./lib/controls.ts";
-import { attributionFailure, duplicateFailure } from "./lib/popup_guards.ts";
+import { attributionFailure, duplicateFailure, seriesTotalsFailure } from "./lib/popup_guards.ts";
 
 const USER_AGENT =
   "wsl-analytics-research/0.1 (tier 2 heat details, headless chromium; +https://github.com/taryn-lgtm/swell-analytics)";
@@ -518,6 +518,137 @@ async function dismissPopup(page: Page): Promise<void> {
     .catch(() => undefined);
 }
 
+/**
+ * Capture one SERIES heat: a WSL Finals Title Match heat after the first.
+ * Added 17 October 2026.
+ *
+ * These heats have no Details link on the page. The only way in is the
+ * "Heat N Details" tab inside heat 1's popup, so this opens the parent's popup,
+ * clicks the tab, and waits for the popup to show THIS heat's published totals.
+ *
+ * Guard (a) is necessary but not sufficient here: heat 1's popup already links
+ * heatId=<heat N>. So guard (c), seriesTotalsFailure, holds the capture to the
+ * totals the results page publishes for heat N, and guard (b) also compares
+ * against the parent's capture. All three run before anything reaches disk.
+ */
+async function captureSeriesHeat(
+  page: Page,
+  f: SeriesFollowOn,
+  previous: { sha: string; heatId: string } | null,
+): Promise<{ html: string; sha: string; counts: { stats: number; waves: number; athletes: number; interference: number } }> {
+  let lastProblem = "not attempted";
+  for (let attempt = 1; attempt <= CAPTURE_ATTEMPTS; attempt++) {
+    await dismissPopup(page);
+    if (attempt > 1) await sleep(1200);
+
+    const parent = page.locator(`${DETAILS_LINK}[href*="heatId=${f.parent_heat_id}"]`).first();
+    if ((await parent.count()) === 0) fail(`series heat ${f.heat_id}: no Details link for its parent heat ${f.parent_heat_id} on this page`);
+    await parent.scrollIntoViewIfNeeded({ timeout: 10000 }).catch(() => undefined);
+    await parent.click({ timeout: 10000 }).catch(() => parent.evaluate((el: Element) => (el as HTMLElement).click()));
+
+    const parentUp = await page
+      .waitForFunction(
+        ({ sel, id }: { sel: string; id: string }) =>
+          Array.from(document.querySelectorAll(sel)).some(
+            (n) => (n.textContent ?? "").includes("Total waves") && n.outerHTML.includes(`heatId=${id}`),
+          ),
+        { sel: POPUP_SELECTOR, id: f.parent_heat_id },
+        { timeout: 20000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    if (!parentUp) {
+      lastProblem = `parent heat ${f.parent_heat_id}'s popup did not render within 20s`;
+      continue;
+    }
+
+    const tab = page.locator(`${POPUP_SELECTOR} a[href*="matchupTab=details-${f.heat_id}"]`).first();
+    if ((await tab.count()) === 0) {
+      lastProblem = `parent ${f.parent_heat_id}'s popup has no "Heat ${f.heat_number} Details" link to ${f.heat_id}`;
+      continue;
+    }
+    await tab.click({ timeout: 10000 }).catch(() => tab.evaluate((el: Element) => (el as HTMLElement).click()));
+
+    // Wait for the popup to SHOW this heat: its first total per surfer equals
+    // the published one. Waiting on heatId alone returns at once (the parent
+    // already names it) -- the 17 August race in a new place.
+    const shown = await page
+      .waitForFunction(
+        ({ sel, expected }: { sel: string; expected: Record<string, number> }) =>
+          Array.from(document.querySelectorAll(sel)).some((n) => {
+            const html = n.outerHTML;
+            if (!(n.textContent ?? "").includes("Total waves")) return false;
+            return Object.entries(expected).every(([id, total]) => {
+              const at = html.search(new RegExp(`hot-heat-athlete--athlete-id-${id}\\b`));
+              if (at < 0) return false;
+              const m = /class="hot-heat-athlete__score[^"]*">\s*([\d.]+)\s*</.exec(html.slice(at));
+              return m !== null && Math.abs(Number(m[1]) - total) < 0.001;
+            });
+          }),
+        { sel: POPUP_SELECTOR, expected: f.expected_totals },
+        { timeout: 20000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    if (!shown) {
+      lastProblem = `no popup showing heat ${f.heat_id}'s published totals rendered within 20s`;
+      continue;
+    }
+
+    const html = await page.evaluate(
+      ({ sel, expected }: { sel: string; expected: Record<string, number> }): string => {
+        const ok = Array.from(document.querySelectorAll(sel)).filter((n) => {
+          const h = n.outerHTML;
+          return (n.textContent ?? "").includes("Total waves") &&
+            Object.keys(expected).every((id) => h.includes(`hot-heat-athlete--athlete-id-${id}`));
+        });
+        return ok.length > 0 ? ok[ok.length - 1].outerHTML : "";
+      },
+      { sel: POPUP_SELECTOR, expected: f.expected_totals },
+    );
+    if (html.length === 0) {
+      lastProblem = `popup matched but could not be serialised`;
+      continue;
+    }
+
+    // Counted exactly as recordsFromDisk counts a retained file, so the
+    // manifest says the same thing whichever path wrote the row.
+    const classAttrs = [...html.matchAll(/class="([^"]*)"/g)].map((m) => m[1]);
+    const tokens = (t: string): number => classAttrs.filter((c) => c.split(/\s+/).includes(t)).length;
+    const counts = {
+      stats: tokens("stat-bar__stat"),
+      waves: tokens("wave-score"),
+      athletes: tokens("hot-heat-athlete__name"),
+      interference: classAttrs.filter((c) => c.includes("interference")).length,
+    };
+    if (counts.waves === 0) {
+      lastProblem = `popup rendered but carries zero .wave-score elements`;
+      continue;
+    }
+    const a = attributionFailure(html, f.heat_id);
+    if (a !== null) {
+      lastProblem = a;
+      continue;
+    }
+    const c = seriesTotalsFailure(html, f.expected_totals);
+    if (c !== null) {
+      lastProblem = c;
+      continue;
+    }
+    const sha = createHash("sha256").update(Buffer.from(html, "utf8")).digest("hex");
+    const b = duplicateFailure(sha, f.heat_id, previous);
+    if (b !== null) {
+      lastProblem = b;
+      continue;
+    }
+    return { html, sha, counts };
+  }
+  return fail(
+    `series heat ${f.heat_id}: ${lastProblem}\n\n` +
+      `  Failed on all ${CAPTURE_ATTEMPTS} attempts. Nothing retained. Do NOT relax a guard to get past this.`,
+  );
+}
+
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   verifyControls();
@@ -829,6 +960,56 @@ async function main(): Promise<void> {
 
         await dismissPopup(page);
         if (args.delayMs > 0) await sleep(args.delayMs);
+      }
+
+      // ---- series heats reached from inside another heat's popup ------
+      for (const f of round.series_follow_on) {
+        if (captured >= args.maxHeats) break;
+        if (args.skipHeats.includes(f.heat_id)) {
+          console.log(`  SKIP    series heat ${f.heat_id} — named by --skip-heat; still an open gap`);
+          continue;
+        }
+        const slug = `${ev.stem}_heat_${f.heat_id}_popup`;
+        if (!args.refetch && existsSync(join(RAW_DIR, `${slug}.html`))) {
+          console.log(`  reuse   series heat ${f.heat_id} — already retained`);
+          continue;
+        }
+        // Compare against the parent's retained capture too: a stale parent
+        // popup is the specific wrong answer here.
+        const parentPath = join(RAW_DIR, `${ev.stem}_heat_${f.parent_heat_id}_popup.html`);
+        const parentSha = existsSync(parentPath)
+          ? createHash("sha256").update(readFileSync(parentPath)).digest("hex")
+          : null;
+        const prev = parentSha !== null ? { sha: parentSha, heatId: f.parent_heat_id } : previousCapture;
+        const got = await captureSeriesHeat(page, f, prev);
+        previousCapture = { sha: got.sha, heatId: f.heat_id };
+
+        const held = retainPopup(slug, got.html, {
+          sourceUrl: url.toString(),
+          heatId: f.heat_id,
+          roundId: round.round_id,
+          eventName: ev.name,
+        });
+        captured += 1;
+        console.log(
+          `  retain  series heat ${f.heat_number} (${f.heat_id})  ${Buffer.byteLength(got.html, "utf8")} bytes  ` +
+            `sha ${held.sha256.slice(0, 12)}…  waves=${got.counts.waves} athletes=${got.counts.athletes}`,
+        );
+        records.push({
+          heat_id: f.heat_id,
+          round_id: round.round_id,
+          round_name_gtm: round.round_name_gtm,
+          source_url: url.toString(),
+          file_path: relative(REPO_ROOT, held.path),
+          sha256: held.sha256,
+          captured_at: held.capturedAt,
+          html_length: Buffer.byteLength(got.html, "utf8"),
+          stats: got.counts.stats,
+          wave_scores: got.counts.waves,
+          athletes: got.counts.athletes,
+          interference_markers: got.counts.interference,
+        });
+        await dismissPopup(page);
       }
       if (captured >= args.maxHeats) break;
     }

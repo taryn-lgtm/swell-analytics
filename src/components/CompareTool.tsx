@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { displayHeatNumber } from "@/lib/finals";
 import { Suspense, useMemo } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { CompareDataset } from "@/lib/queries/compare";
@@ -11,12 +12,13 @@ import {
   placingRows,
   summarise,
   venueRows,
+  vsDatumGap,
   type Rate,
   type SurferSummary,
 } from "@/lib/compare";
 import { EM_DASH, formatDerived, formatDerivedSigned, formatScore, ordinal } from "@/lib/format";
 import { eventSlug } from "@/lib/slug";
-import { formatTrim } from "@/lib/trim";
+import { formatTrim, formatTrimRange } from "@/lib/trim";
 import Card from "@/components/ui/Card";
 import SectionHeader from "@/components/ui/SectionHeader";
 import EmptyState from "@/components/ui/EmptyState";
@@ -202,7 +204,7 @@ export function CompareView({
       {/* ---- Coverage ----------------------------------------------- */}
       <section className="mt-10">
         <SectionHeader kicker="Coverage" title="What each record is built on" />
-        <p className="mb-4 max-w-3xl text-body-sm text-fg-muted">
+        <p className="mb-4 max-w-[72ch] text-body-sm text-fg-muted">
           Read this first. A surfer with fewer heats in the data has a noisier record, and a
           surfer who missed a season is only being compared on the other one.
         </p>
@@ -219,9 +221,14 @@ export function CompareView({
             },
             {
               label: "Latest Trim",
-              a: formatTrim(a.trim),
-              b: formatTrim(b.trim),
-              note: "Both seasons, whatever the season filter says",
+              a: a.trim == null ? formatTrim(a.trim) : `${formatTrim(a.trim)} ${formatTrimRange(a.trimHalfWidth)}`,
+              b: b.trim == null ? formatTrim(b.trim) : `${formatTrim(b.trim)} ${formatTrimRange(b.trimHalfWidth)}`,
+              note: "Both seasons, whatever the season filter says. ± is the 95% range",
+            },
+            {
+              label: "Last heat",
+              a: a.lastHeat ?? EM_DASH,
+              b: b.lastHeat ?? EM_DASH,
             },
           ]}
         />
@@ -269,6 +276,7 @@ export function CompareView({
           ]}
         />
         <SmallSampleNote a={a.name} b={b.name} sa={sa} sb={sb} />
+        <GapNote gap={vsDatumGap(sa, sb)} same={same} />
       </section>
 
       {/* ---- Head-to-head ------------------------------------------- */}
@@ -299,7 +307,10 @@ export function CompareView({
                       <span className="text-fg-subtle">
                         {" "}
                         · {m.roundName}
-                        {m.heatNumber != null ? `, heat ${m.heatNumber}` : ""} · {m.heatSize} surfers
+                        {(() => {
+                          const n = displayHeatNumber(ev?.kind, m.roundOrder, m.heatNumber);
+                          return n != null ? `, heat ${n}` : "";
+                        })()} · {m.heatSize} surfers
                       </span>
                     </div>
                     <div className="figures text-body-sm">
@@ -343,8 +354,8 @@ export function CompareView({
         <ProvenancePanel>
           venues where both surfers have at least <span className="figures">{VENUE_MIN_HEATS}</span>{" "}
           heats. The venue is where each heat was actually surfed, which can differ from the
-          event&apos;s named venue. <span className="figures">{venueCoverage.noVenue}</span> of{" "}
-          <span className="figures">{venueCoverage.heats}</span> heats have no recorded venue and are
+          event&apos;s named venue. <span className="figures">{venueCoverage.noVenue}</span>{" "}of{" "}
+          <span className="figures">{venueCoverage.heats}</span>{" "}heats have no recorded venue and are
           left out here.
         </ProvenancePanel>
       </section>
@@ -502,6 +513,17 @@ function MeetingSide({
       {name.split(" ").slice(-1)[0]} {formatScore(side.total)}
       {side.position != null && <span className="text-fg-subtle"> ({ordinal(side.position)})</span>}
     </span>
+  );
+}
+
+function GapNote({ gap, same }: { gap: ReturnType<typeof vsDatumGap>; same: boolean }) {
+  if (!gap || same) return null;
+  return (
+    <p className="mt-3 text-caption text-fg-subtle">
+      {gap.distinguishable
+        ? `The gap in average vs Datum (${formatDerived(gap.gap)}) is bigger than the noise in these heat counts (${formatDerived(gap.threshold)}), so it is a real difference in these seasons.`
+        : `The gap in average vs Datum (${formatDerived(gap.gap)}) is smaller than the noise in these heat counts (${formatDerived(gap.threshold)}), so these two can't be told apart on it.`}
+    </p>
   );
 }
 

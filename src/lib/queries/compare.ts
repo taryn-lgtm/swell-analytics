@@ -35,6 +35,10 @@ export interface CompareSurfer {
   countryCode: string | null;
   /** Latest Trim, the same figure `/` shows; null if unrated. */
   trim: number | null;
+  /** 95% half-width of that Trim; null if unrated. */
+  trimHalfWidth: number | null;
+  /** Last rated heat, e.g. "Lexus Pipe Pro 2025"; null if unrated. */
+  lastHeat: string | null;
 }
 
 export interface CompareEvent {
@@ -158,7 +162,7 @@ export const getCompareDataset = cache(async (): Promise<CompareDataset> => {
   const residualByEntry = new Map(datum.map((d) => [d.heat_entry_id, num(d.residual)]));
   const sizeByHeat = new Map<number, number>();
   for (const e of entries) sizeByHeat.set(e.heat_id, (sizeByHeat.get(e.heat_id) ?? 0) + 1);
-  const trimBySurfer = new Map(trimCurrent.map((t) => [t.surferId, t.trim]));
+  const trimBySurfer = new Map(trimCurrent.map((t) => [t.surferId, t]));
 
   const outHeats: CompareHeat[] = [];
   for (const e of entries) {
@@ -192,7 +196,12 @@ export const getCompareDataset = cache(async (): Promise<CompareDataset> => {
         name: s.full_name,
         slug: s.slug,
         countryCode: s.country_code,
-        trim: trimBySurfer.get(s.id) ?? null,
+        trim: trimBySurfer.get(s.id)?.trim ?? null,
+        trimHalfWidth: trimBySurfer.get(s.id)?.halfWidth ?? null,
+        lastHeat: (() => {
+          const l = trimBySurfer.get(s.id)?.lastHeat;
+          return l ? `${l.eventName} ${l.seasonYear}` : null;
+        })(),
       }))
       .sort((a, b) => a.name.localeCompare(b.name)),
     events: events.map((e) => ({

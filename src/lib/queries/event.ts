@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { db } from "@/lib/db/server";
 import { eventSlug } from "@/lib/slug";
+import { wslResultsUrl } from "@/lib/wsl";
 import { num } from "@/lib/trim";
 import { getMoversAtEvent, type Mover } from "@/lib/queries/home";
 
@@ -102,6 +103,8 @@ export interface EventPage {
   endDate: string | null;
   occursAfterCut: boolean;
   awardsRankingPoints: boolean;
+  /** WSL's own results page for this event (lib/wsl). */
+  wslUrl: string | null;
   /** events.venue_id -- the NOMINAL venue (trap 20). */
   nominalVenueName: string | null;
   /** Heats per heats.venue_id name, sorted by name. */
@@ -136,7 +139,7 @@ export const getEventPage = cache(async (param: string): Promise<EventPage | nul
   const evRes = await db
     .from("events")
     .select(
-      "id, name, slug, kind, season_year, event_number, start_date, end_date, occurs_after_cut, awards_ranking_points, venue_id"
+      "id, name, slug, kind, season_year, event_number, start_date, end_date, occurs_after_cut, awards_ranking_points, venue_id, wsl_event_id"
     )
     .limit(500);
   if (evRes.error) throw new Error(`events query failed: ${evRes.error.message}`);
@@ -367,6 +370,7 @@ export const getEventPage = cache(async (param: string): Promise<EventPage | nul
     endDate: e.end_date,
     occursAfterCut: e.occurs_after_cut,
     awardsRankingPoints: e.awards_ranking_points,
+    wslUrl: wslResultsUrl(e),
     nominalVenueName: e.venue_id != null ? (venueName.get(e.venue_id) ?? null) : null,
     heatVenues: [...venueCounts]
       .map(([name, heats]) => ({ name, heats }))

@@ -107,3 +107,105 @@ export function popupLinksByHeat(markup: string): Map<string, string> {
   }
   return out;
 }
+
+/** One heat of the Title Match series, as the results page publishes it. */
+export interface SeriesHeat {
+  /** 1-based position in the series: H1, H2, H3. */
+  heatNumber: number;
+  wslHeatId: string;
+  /** Heat total per WSL athlete id, read off the series block. */
+  totals: Map<string, number>;
+}
+
+/** The Title Match series: every heat the page publishes, and the published result. */
+export interface TitleMatchSeries {
+  heats: SeriesHeat[];
+  /** "J. Florence Wins 2 - 0" as rendered, or null if the page shows none. */
+  resultText: string | null;
+  /** Heats won, from the result text: [winner, loser]. */
+  score: [number, number] | null;
+}
+
+/**
+ * The Title Match series, added 17 October 2026.
+ *
+ * The Title Match is a series, not a heat. The results page renders it as ONE
+ * block whose Details link names only heat 1, but the block carries every heat's
+ * score per surfer (`hot-heat-athlete__score` once per heat, labelled H1, H2,
+ * H3), the series result ("Wins 2 - 0"), and one full-heat-replay link per heat
+ * whose GTM blob names that heat's id. 2024 men's: heats 102841 and 102842,
+ * JJF 15.50 / 18.13 against Italo 15.33 / 16.30, "Wins 2 - 0". Loading only the
+ * first pair is how 2024 Title Match Heat 2 stayed out of v2 for two months
+ * while the bytes sat on disk.
+ *
+ * Every heat id comes from a replay link and every score from the block; the
+ * two are paired by series position and the counts must agree, or this throws.
+ */
+export function titleMatchSeries(markup: string, division: "mens" | "womens"): TitleMatchSeries {
+  // Replay links in document order: heat number from the slug, heat id from the
+  // first heat_ids in the GTM blob that follows the link.
+  const byNumber = new Map<number, string>();
+  const linkRe = new RegExp(`/posts/\\d+/[a-z0-9-]*-${division}-title-match(-heat-(\\d+))?-[a-z0-9-]*`, "g");
+  for (const m of markup.matchAll(linkRe)) {
+    const n = m[2] === undefined ? 1 : Number(m[2]);
+    const tail = markup.slice(m.index ?? 0, (m.index ?? 0) + 4000);
+    const id = /heat_ids(?:&quot;|")\s*:\s*(?:&quot;|")(\d+)/.exec(tail)?.[1];
+    if (id === undefined) continue;
+    const prev = byNumber.get(n);
+    if (prev !== undefined && prev !== id) {
+      throw new Error(`title match heat ${n} is linked to two heat ids, ${prev} and ${id}`);
+    }
+    byNumber.set(n, id);
+  }
+  const numbers = [...byNumber.keys()].sort((a, b) => a - b);
+  if (numbers.length === 0) return { heats: [], resultText: null, score: null };
+  if (numbers.some((n, i) => n !== i + 1)) {
+    throw new Error(`title match replay links are not a contiguous series: heats ${numbers.join(", ")}`);
+  }
+
+  // The block: from heat 1's Details-link heat class to the next heat grid cell.
+  const firstId = byNumber.get(1)!;
+  const start = markup.indexOf(`post-event-watch-heat-grid__heat--heat-id-${firstId}`);
+  if (start < 0) throw new Error(`no heat block for title match heat 1 (${firstId})`);
+  const nextCell = markup.indexOf("post-event-watch-heat-grid__heat ", start + 10);
+  const block = markup.slice(start, nextCell > start ? nextCell : start + 20000);
+
+  const resultText = /hot-heat__status--advance[^>]*>\s*([^<]*?Wins\s+\d+\s*-\s*\d+)\s*</.exec(block)?.[1].trim() ?? null;
+  const sm = resultText ? /Wins\s+(\d+)\s*-\s*(\d+)/.exec(resultText) : null;
+  const score: [number, number] | null = sm ? [Number(sm[1]), Number(sm[2])] : null;
+
+  const labels = [...block.matchAll(/heat-label">\s*H(\d+)\s*</g)].map((m) => Number(m[1]));
+  const athletes = [...block.matchAll(/hot-heat-athlete--athlete-id-(\d+)\b/g)];
+  const perAthlete = new Map<string, number[]>();
+  for (let i = 0; i < athletes.length; i++) {
+    const id = athletes[i][1];
+    if (perAthlete.has(id)) continue;
+    const from = athletes[i].index ?? 0;
+    const to = i + 1 < athletes.length ? (athletes[i + 1].index ?? block.length) : block.length;
+    const scores = [...block.slice(from, to).matchAll(/class="hot-heat-athlete__score[^"]*">\s*([\d.]+)\s*</g)].map((m) =>
+      Number(m[1]),
+    );
+    perAthlete.set(id, scores);
+  }
+
+  const n = numbers.length;
+  for (const [id, s] of perAthlete) {
+    if (s.length !== n) {
+      throw new Error(`athlete ${id} has ${s.length} title match score(s) against ${n} heat(s) in the replay links`);
+    }
+  }
+  // A one-heat series renders no H labels; any series of two or more must label every heat.
+  if (n > 1 && labels.join(",") !== numbers.join(",")) {
+    throw new Error(`title match heat labels [${labels.join(", ")}] do not match the replay links [${numbers.join(", ")}]`);
+  }
+  if (score !== null && score[0] + score[1] !== n) {
+    throw new Error(`series result "${resultText}" accounts for ${score[0] + score[1]} heat(s); the page publishes ${n}`);
+  }
+
+  const heats: SeriesHeat[] = numbers.map((k) => ({
+    heatNumber: k,
+    wslHeatId: byNumber.get(k)!,
+    totals: new Map([...perAthlete].map(([id, s]) => [id, s[k - 1]])),
+  }));
+  return { heats, resultText, score };
+}

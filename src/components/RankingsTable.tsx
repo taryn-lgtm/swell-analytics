@@ -6,7 +6,7 @@ import { MeasureBar } from "@/components/ui/StatLine";
 import CountryTag from "@/components/CountryTag";
 import ChampionBadge from "@/components/ChampionBadge";
 import { formatPoints, ordinal } from "@/lib/format";
-import { formatPriorWeight, formatTrim } from "@/lib/trim";
+import { formatPriorWeight, formatTrim, formatTrimRange } from "@/lib/trim";
 import type { RankingRow } from "@/lib/queries/rankings";
 
 /**
@@ -153,6 +153,11 @@ export default function RankingsTable({
             <span className={r.trim.nHeats < minHeats ? "text-fg-subtle" : "font-medium"}>
               {formatTrim(r.trim.trim)}
             </span>
+            {r.trim.halfWidth != null && (
+              <span className="figures text-caption text-fg-subtle" title="95% range from sampling noise">
+                {formatTrimRange(r.trim.halfWidth)}
+              </span>
+            )}
             <span className="w-20">
               <MeasureBar
                 fraction={maxTrim > 0 ? Math.max(0, r.trim.trim) / maxTrim : 0}

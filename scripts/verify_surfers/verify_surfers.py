@@ -19,7 +19,9 @@ SECTIONS = ["header", "log", "timeline", "splits", "prov"]
 
 
 def norm(s):
-    return re.sub(r"\s+", " ", s or "").strip()
+    # The site draws negatives with U+2212 (17 Oct 2026); Postgres's ::text
+    # draws a hyphen. Compare the value, not the glyph.
+    return re.sub(r"\s+", " ", s or "").replace("\u2212", "-").strip()
 
 
 def t(el):
@@ -40,11 +42,11 @@ def canon(html):
     h.append(f"seasons={seasons[0] if seasons else ''}")
     titles = re.findall(r"(\d{4}) World Champion", head.get_text(" "))
     h.append(f"titles={','.join(sorted(set(titles)))}")
+    # StatLine in term mode (17 Oct 2026): dl > div > dt + dd, the figure
+    # and its unit the first span inside the dd.
     for stat in head.select("dl > div"):
-        col = stat.find("div")
-        spans = col.find_all("span", recursive=False)
-        label = t(spans[0])
-        inner = spans[1].find_all("span", recursive=False)
+        label = t(stat.find("dt"))
+        inner = stat.find("dd").find("span").find_all("span", recursive=False)
         value = t(inner[0])
         unit = t(inner[1]) if len(inner) > 1 else ""
         h.append(f"{label}={value}|{unit}")
@@ -52,7 +54,7 @@ def canon(html):
     if note is not None:
         h.append("below=" + ",".join(t(x) for x in note.select("span.figures")))
     for h2 in soup.find_all("h2"):
-        if re.match(r"^\d+ heats across \d+ events?$", t(h2)):
+        if re.match(r"^\d+ heats? across \d+ events?$", t(h2)):
             h.append(f"logtitle={t(h2)}")
     out["header"] = h
 

@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/rankings", label: "Rankings" },
+  { href: "/events", label: "Events" },
+  { href: "/surfers", label: "Surfers" },
   { href: "/trim", label: "Trim" },
   { href: "/compare", label: "Compare" },
 ] as const;
@@ -14,7 +16,7 @@ const NAV_LINKS = [
 export default function NavLinks() {
   const path = usePathname();
   return (
-    <ul className="flex gap-1 whitespace-nowrap text-body-sm">
+    <ul className="flex flex-wrap gap-x-1 whitespace-nowrap text-body-sm">
       {NAV_LINKS.map(({ href, label }) => {
         const current = href === "/" ? path === "/" : path.startsWith(href);
         return (

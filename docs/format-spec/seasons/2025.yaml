@@ -223,7 +223,19 @@ events:
     results_url: https://www.worldsurfleague.com/events/2025/ct/331/lexus-wsl-finals-fiji/results
     note: >
       Reallocates the top five ranking positions rather than awarding points.
-      Final Match is best of three heats.
+      Final Match is best of three heats, with a world #1 Heat 1 rule (see
+      final_match_rule). Surfed: Yago Dora, world #1, won Heat 1, 15.66-12.33,
+      and with it the title: "Y. Dora Wins 1 - 0", one heat (108300).
+    final_match_rule:
+      rule: >
+        World #1 can win the World Title by winning Title Match Heat 1.
+        Otherwise, Title Match is Best-of-3 heats.
+      source: >
+        docs/sources/raw/2025_ct_331_lexus_wsl_finals_fiji_results.html, the
+        note printed under the men's Title Match. NOT in the 2025 rulebook
+        (1 June 2025 edition), whose 1.06(e)(iv) still reads only "best of
+        three (3) heats"; the results page is the source. Absent from the 2024
+        results page. Confirmed by Taryn 17 October 2026.
 
 # ---------------------------------------------------------------------------
 # Expected values — consumed directly by the audit suite

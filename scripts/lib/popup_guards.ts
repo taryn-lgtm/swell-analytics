@@ -66,3 +66,41 @@ export function duplicateFailure(
     `bytes; the popup had not changed when this was serialised.`
   );
 }
+
+/**
+ * Guard (c), added 17 October 2026, for SERIES heats only: the WSL Finals
+ * Title Match heats after the first.
+ *
+ * Guard (a) cannot attribute these. A series heat has no Details link of its
+ * own; it is reached by clicking "Heat 2 Details" INSIDE heat 1's popup, and
+ * heat 1's popup already carries `heatId=<heat 2>` in that very link. So a
+ * stale heat 1 capture filed as heat 2 names heat 2 and passes (a). The
+ * control in docs/sources/controls.json (popup_series_totals.negative) is
+ * exactly that file, and it does pass (a).
+ *
+ * What does attribute it is the score: the results page publishes every
+ * series heat's total per surfer, so the capture must show those totals.
+ * Returns null if every expected surfer's first heat total in the capture
+ * equals the published one (numerically, trap 16), or the reason it does not.
+ */
+export function seriesTotalsFailure(html: string, expected: Record<string, number>): string | null {
+  const ids = Object.keys(expected);
+  if (ids.length === 0) return "no expected totals were supplied, so the capture cannot be attributed";
+  const problems: string[] = [];
+  for (const id of ids) {
+    const at = html.search(new RegExp(`hot-heat-athlete--athlete-id-${id}\\b`));
+    if (at < 0) {
+      problems.push(`athlete ${id} is not in the capture`);
+      continue;
+    }
+    const m = /class="hot-heat-athlete__score[^"]*">\s*([\d.]+)\s*</.exec(html.slice(at));
+    const got = m ? Number(m[1]) : null;
+    if (got === null || Math.abs(got - expected[id]) > 0.001) {
+      problems.push(`athlete ${id} shows ${got ?? "no total"}, the results page publishes ${expected[id]}`);
+    }
+  }
+  return problems.length === 0
+    ? null
+    : `capture's heat totals are not this series heat's: ${problems.join("; ")}. ` +
+        `Most likely the previous series heat's popup, serialised before the clicked tab rendered.`;
+}

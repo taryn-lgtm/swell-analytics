@@ -2,7 +2,7 @@ import { cache } from "react";
 import { db } from "@/lib/db/server";
 import { exactMean } from "@/lib/format";
 import { num, TRIM_MIN_HEATS } from "@/lib/trim";
-import { getTrimCurrent, type TrimCurrentRow } from "@/lib/queries/home";
+import { getTrimCurrent, getTrimModelRun, type TrimCurrentRow } from "@/lib/queries/home";
 
 /**
  * Data for `/surfers/[slug]` -- the three modules the M3 scope cap names:
@@ -161,6 +161,12 @@ export const getSurferProfile = cache(async (slug: string): Promise<SurferProfil
   if (surfer.data.length === 0) return null;
   const s = surfer.data[0];
 
+  // `trim` is append-only, so a recompute is a new run beside the old one
+  // (migration 22 added run 2). Read only the run v_trim_current reports;
+  // without this filter every heat would carry two Trim rows.
+  const run = await getTrimModelRun();
+  const runId = run?.id ?? -1;
+
   const [entriesRes, trimRes, datumRes, trimCurrent, seasonsRes] = await Promise.all([
     db
       .from("heat_entries")
@@ -175,6 +181,7 @@ export const getSurferProfile = cache(async (slug: string): Promise<SurferProfil
         count: "exact",
       })
       .eq("surfer_id", s.id)
+      .eq("model_run_id", runId)
       .limit(2000),
     db
       .from("datum")

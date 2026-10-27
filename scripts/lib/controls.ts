@@ -32,7 +32,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { REPO_ROOT, classMarkerCount, fail, isRecord } from "./retain.ts";
-import { attributionFailure, duplicateFailure } from "./popup_guards.ts";
+import { attributionFailure, duplicateFailure, seriesTotalsFailure } from "./popup_guards.ts";
 
 interface PopupPositive {
   artefact: string;
@@ -47,6 +47,31 @@ interface PopupControls {
   positive: PopupPositive[];
   negative: PopupNegative[];
   duplicateSha: string | null;
+}
+
+interface SeriesControl {
+  artefact: string;
+  claimedHeatId: string;
+  expectedTotals: Record<string, number>;
+}
+
+/** The popup_series_totals block. Absent block means no series controls. */
+function loadSeriesControls(): { positive: SeriesControl[]; negative: SeriesControl[] } {
+  const raw: unknown = JSON.parse(readFileSync(CONTROLS_PATH, "utf8"));
+  const block = isRecord(raw) ? raw.popup_series_totals : undefined;
+  if (!isRecord(block)) return { positive: [], negative: [] };
+  const read = (v: unknown): SeriesControl[] =>
+    (Array.isArray(v) ? v : [])
+      .filter(isRecord)
+      .filter((c) => typeof c.artefact === "string" && isRecord(c.expected_totals))
+      .map((c) => ({
+        artefact: c.artefact as string,
+        claimedHeatId: String(c.claimed_heat_id ?? c.heat_id ?? ""),
+        expectedTotals: Object.fromEntries(
+          Object.entries(c.expected_totals as Record<string, unknown>).map(([k, v]) => [k, Number(v)]),
+        ),
+      }));
+  return { positive: read(block.positive), negative: read(block.negative) };
 }
 
 /** The popup_attribution block. Absent block means no popup controls, not a
@@ -289,6 +314,47 @@ export function verifyControls(quiet = true): ControlResult {
         `  popup attribution — duplicate pair\n` +
           `    NEGATIVE CONTROL FAILED — guard (b) ACCEPTED a byte-identical repeat\n` +
           `    sha256 ${popup.duplicateSha.slice(0, 16)}… was filed under two heat ids.`,
+      );
+    }
+  }
+
+  // Series-heat totals (guard c). The negative is heat 1's popup filed as
+  // heat 2: it must pass guard (a) -- that is the hole -- and fail guard (c).
+  const series = loadSeriesControls();
+  for (const p of series.positive) {
+    const html = readArtefact(p.artefact);
+    if (html === null) {
+      skipped.push(`series totals (positive): ${p.artefact} not on disk`);
+      continue;
+    }
+    checked += 1;
+    const bad = seriesTotalsFailure(html, p.expectedTotals);
+    if (bad !== null) {
+      failures.push(
+        `  series totals — ${p.artefact}\n` +
+          `    POSITIVE CONTROL FAILED — a known-good capture was rejected\n    ${bad}`,
+      );
+    }
+  }
+  for (const n of series.negative) {
+    const html = readArtefact(n.artefact);
+    if (html === null) {
+      skipped.push(`series totals (negative): ${n.artefact} not on disk`);
+      continue;
+    }
+    checked += 1;
+    if (seriesTotalsFailure(html, n.expectedTotals) === null) {
+      failures.push(
+        `  series totals — ${n.artefact}\n` +
+          `    NEGATIVE CONTROL FAILED — guard (c) ACCEPTED heat 1's popup filed as heat ${n.claimedHeatId}.\n` +
+          `    Series-heat collection is unsafe until it rejects this.`,
+      );
+    }
+    if (attributionFailure(html, n.claimedHeatId) !== null) {
+      failures.push(
+        `  series totals — ${n.artefact}\n` +
+          `    The negative control no longer passes guard (a), so it no longer shows the hole\n` +
+          `    guard (c) exists for. Re-establish the control before trusting either guard.`,
       );
     }
   }

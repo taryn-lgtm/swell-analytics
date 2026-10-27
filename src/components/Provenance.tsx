@@ -25,10 +25,18 @@ export default function ProvenancePanel({
   children: React.ReactNode;
   label?: string;
 }) {
+  // Collapsed behind "How this is computed" since M5: the notes name database
+  // tables and views, which the WSL-analyst audit (C2) found read as jargon to
+  // a reader. The provenance stays one click away and in the page source.
   return (
-    <div className="mt-3 border-t border-hairline pt-2 text-caption leading-relaxed text-fg-subtle">
-      <span className="font-semibold tracking-[0.04em]">{label}</span>{" "}
-      {children}
-    </div>
+    <details className="mt-3 border-t border-hairline pt-2 text-caption leading-relaxed text-fg-subtle">
+      <summary className="inline-flex min-h-6 cursor-pointer items-center font-semibold tracking-[0.04em] hover:text-fg">
+        How this is computed
+      </summary>
+      <div className="pt-1">
+        <span className="font-semibold tracking-[0.04em]">{label}</span>{" "}
+        {children}
+      </div>
+    </details>
   );
 }

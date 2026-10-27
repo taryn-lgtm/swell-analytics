@@ -99,7 +99,7 @@ export default async function RankingsView({
             {championRow.finalsPlacing === 1 ? " and then won the WSL Finals, which decide the title." : "."}
           </p>
         )}
-        <p className="mt-4 max-w-3xl text-body text-fg-muted">
+        <p className="mt-4 max-w-[72ch] text-body text-fg-muted">
           Season points as WSL published them, event by event, with each surfer&apos;s
           published throwaway left out. The title is not the points: the five highest
           totals surf the WSL Finals and their finishing order there is the published
@@ -224,11 +224,11 @@ export default async function RankingsView({
           />
         )}
         <ProvenancePanel>
-          <code className="figures">event_entries</code> for the{" "}
+          <code className="figures">event_entries</code>{" "}for the{" "}
           <span className="figures">{eventsCounted}</span> {seasonYear} events that award ranking
-          points — <span className="figures">{data?.entryRowCount ?? 0}</span> rows over{" "}
-          <span className="figures">{rowsByPoints.length}</span> surfers, each row&apos;s{" "}
-          <code className="figures">points</code> and <code className="figures">throwaway_published</code>{" "}
+          points — <span className="figures">{data?.entryRowCount ?? 0}</span>{" "}rows over{" "}
+          <span className="figures">{rowsByPoints.length}</span>{" "}surfers, each row&apos;s{" "}
+          <code className="figures">points</code>{" "}and <code className="figures">throwaway_published</code>{" "}
           read off WSL&apos;s final-rankings page, never derived from a placing. A season total is the
           sum with the published throwaway left out
           {data?.throwaway?.form && data.throwaway.eligibility && data.preCutEventCount != null && (
@@ -236,28 +236,28 @@ export default async function RankingsView({
               {" "}
               (the era&apos;s stored rule: <span className="figures">{data.throwaway.form}</span>,{" "}
               <span className="figures">{data.throwaway.eligibility}</span>, over the{" "}
-              <span className="figures">{data.preCutEventCount}</span> pre-cut events)
+              <span className="figures">{data.preCutEventCount}</span>{" "}pre-cut events)
             </>
           )}
           . Wildcards hold heat results but no ranking row, so they are absent here, not zero.
-          Finals placings are <code className="figures">heat_entries.finished_position</code> at{" "}
+          Finals placings are <code className="figures">heat_entries.finished_position</code>{" "}at{" "}
           {data?.finalsEvent ? <span className="figures">{data.finalsEvent.name}</span> : "the WSL Finals"};
           the champion is <code className="figures">seasons.world_champion_surfer_id</code>, never the points
           leader. The mid-season cut
           {data?.cutAfterEvent != null ? (
             <>
               {" "}
-              fell after event <span className="figures">{data.cutAfterEvent}</span> (source grade:{" "}
+              fell after event <span className="figures">{data.cutAfterEvent}</span>{" "}(source grade:{" "}
               <span className="figures">{data.cutSourceGrade ?? "none"}</span>) and its position is not
               stored, so no cut line is drawn
             </>
           ) : (
             " is not recorded for this season"
           )}
-          . Trim is <code className="figures">v_trim_current</code> for{" "}
-          <span className="figures">{surfersWithTrim}</span> of these surfers — their latest rating over
+          . Trim is <code className="figures">v_trim_current</code>{" "}for{" "}
+          <span className="figures">{surfersWithTrim}</span>{" "}of these surfers — their latest rating over
           every season held, shown with its heat count and prior weight; below{" "}
-          <span className="figures">{TRIM_MIN_HEATS}</span> heats it is muted, not hidden.
+          <span className="figures">{TRIM_MIN_HEATS}</span>{" "}heats it is muted, not hidden.
         </ProvenancePanel>
       </section>
     </Container>

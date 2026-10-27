@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import TrimExplainer, { type ExplainerHeat, type ScatterRow } from "@/components/trim/TrimExplainer";
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
   title: "How Trim works",
   description:
     "Trim measures every Championship Tour heat against what that round normally produces, and keeps a running average that leans on recent heats.",
+  ...pageMeta("/trim"),
 };
 
 /** The worked example. Chosen in the concept for having the longest 2024-25 record. */

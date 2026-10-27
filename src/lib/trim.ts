@@ -1,4 +1,4 @@
-import { roundHalfUp } from "@/lib/format";
+import { MINUS, roundHalfUp, withMinus } from "@/lib/format";
 
 /**
  * Trim display rules shared by every route that shows a Trim figure.
@@ -33,7 +33,7 @@ export const TRIM_MIN_HEATS = 16;
 /** Trim is points per heat on the 0-20 scale; three decimals as docs/trim_v1.html. */
 export function formatTrim(trim: number | null | undefined): string {
   if (trim == null || Number.isNaN(trim)) return "—";
-  return roundHalfUp(trim, 3).toFixed(3);
+  return withMinus(roundHalfUp(trim, 3).toFixed(3));
 }
 
 /**
@@ -44,8 +44,34 @@ export function formatTrim(trim: number | null | undefined): string {
  */
 export function formatTrimDelta(delta: number | null | undefined): string {
   if (delta == null || Number.isNaN(delta)) return "—";
-  const sign = delta > 0 ? "+" : delta < 0 ? "−" : "±";
+  const sign = delta > 0 ? "+" : delta < 0 ? MINUS : "±";
   return `${sign}${roundHalfUp(roundHalfUp(Math.abs(delta), 6), 3).toFixed(3)}`;
+}
+
+/**
+ * Sampling noise on a Trim figure, as a 95% half-width (the "±" shown beside
+ * it). Added for M5 after the WSL-analyst audit (17 October 2026): ranks were
+ * shown to three decimals on a measure whose noise is several tenths.
+ *
+ * Trim after n rated heats is sum_i alpha (1 - alpha)^(n - i) r_i, a weighted
+ * sum of heat residuals plus (1 - alpha)^n times the prior of zero, which adds
+ * no noise. Treating residuals as independent with standard deviation sigma,
+ * the variance is sigma^2 alpha^2 (1 - (1 - alpha)^(2n)) / (1 - (1 - alpha)^2).
+ * sigma is the run's walk-forward RMSE, the residual spread the model actually
+ * faced. This is an approximation (residuals are not perfectly independent
+ * and sigma is pooled across surfers), and the copy beside it says so.
+ * Long records converge on 1.96 sigma sqrt(alpha / (2 - alpha)), about 0.87.
+ */
+export function trimHalfWidth95(nHeats: number, alpha: number, sigma: number): number {
+  const q = (1 - alpha) ** 2;
+  const variance = sigma ** 2 * alpha ** 2 * ((1 - q ** nHeats) / (1 - q));
+  return 1.96 * Math.sqrt(variance);
+}
+
+/** The ± half-width at two decimals, half-up: "± 0.87". */
+export function formatTrimRange(halfWidth: number | null | undefined): string {
+  if (halfWidth == null || Number.isNaN(halfWidth)) return "—";
+  return `± ${roundHalfUp(halfWidth, 2).toFixed(2)}`;
 }
 
 /** Prior weight as a 0-1 share, three decimals (0.144), as docs/trim_v1.html. */

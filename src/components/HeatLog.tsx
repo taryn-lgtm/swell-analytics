@@ -3,9 +3,10 @@
 import Link from "next/link";
 import DataTable, { type Column } from "@/components/ui/DataTable";
 import { eventSlug } from "@/lib/slug";
-import { EM_DASH, formatScore, ordinal } from "@/lib/format";
+import { EM_DASH, fixed, formatScore, ordinal } from "@/lib/format";
 import { formatPriorWeight, formatTrim } from "@/lib/trim";
 import type { SurferHeat } from "@/lib/queries/surfer";
+import { TITLE_MATCH_ROUND_ORDER, displayHeatNumber, isFinals, titleMatchNoteFor } from "@/lib/finals";
 
 /**
  * The heat log: `heat_entries` + `heats` + `rounds` + `events`, with the
@@ -27,6 +28,22 @@ import type { SurferHeat } from "@/lib/queries/surfer";
  * zeroes a counting ride without promoting the next one.
  */
 export default function HeatLog({ heats, minHeats }: { heats: SurferHeat[]; minHeats: number }) {
+  // The Title Match is a series: this surfer's heats won and lost in it, per
+  // Finals, from the published placings. Shown under every Title Match row.
+  const series = new Map<string, { won: number; lost: number }>();
+  for (const h of heats) {
+    if (!isFinals(h.eventKind) || h.roundOrder !== TITLE_MATCH_ROUND_ORDER || h.position == null) continue;
+    const k = `${h.seasonYear}-${h.eventNumber}`;
+    const s = series.get(k) ?? { won: 0, lost: 0 };
+    if (h.position === 1) s.won += 1;
+    else s.lost += 1;
+    series.set(k, s);
+  }
+  const seriesNote = (h: SurferHeat): string | null => {
+    if (!isFinals(h.eventKind) || h.roundOrder !== TITLE_MATCH_ROUND_ORDER) return null;
+    const s = series.get(`${h.seasonYear}-${h.eventNumber}`);
+    return s ? titleMatchNoteFor(h.seasonYear, s.won, s.lost) : null;
+  };
   const columns: Column<SurferHeat>[] = [
     {
       key: "seq",
@@ -55,6 +72,7 @@ export default function HeatLog({ heats, minHeats }: { heats: SurferHeat[]; minH
             <Link href={`/events/${eventSlug(h.eventSlug, h.seasonYear)}`} className="inline-block py-1 hover:text-link hover:underline">
               {h.eventName}
             </Link>
+            {h.eventKind === "wsl_finals" && " "}
             {h.eventKind === "wsl_finals" && (
               <span className="ml-1.5 text-caption tracking-[0.04em] text-structure">
                 Finals
@@ -63,9 +81,16 @@ export default function HeatLog({ heats, minHeats }: { heats: SurferHeat[]; minH
           </span>
           <span className="text-caption text-fg-subtle">
             {h.roundName}
-            {h.heatNumber != null && <span className="figures"> · heat {h.heatNumber}</span>}
+            {displayHeatNumber(h.eventKind, h.roundOrder, h.heatNumber) != null && (
+              <span className="figures"> · heat {displayHeatNumber(h.eventKind, h.roundOrder, h.heatNumber)}</span>
+            )}
             {h.venueName && <span> · {h.venueName}</span>}
           </span>
+          {seriesNote(h) && (
+            <span data-v="series-note" className="text-caption text-fg-subtle">
+              {seriesNote(h)}
+            </span>
+          )}
         </span>
       ),
     },
@@ -128,7 +153,7 @@ export default function HeatLog({ heats, minHeats }: { heats: SurferHeat[]; minH
           <span className="flex flex-col items-end gap-0.5">
             <span className={h.residual >= 0 ? "font-medium text-fg" : "text-fg-muted"}>
               {h.residual >= 0 ? "+" : ""}
-              {h.residual.toFixed(2)}
+              {fixed(h.residual, 2)}
             </span>
             <span className="text-caption text-fg-subtle">exp {formatScore(h.expected)}</span>
           </span>

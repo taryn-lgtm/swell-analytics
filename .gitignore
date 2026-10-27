@@ -64,3 +64,8 @@ __pycache__/
 .vercel/
 .vercel
 .env*
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+
+# Retired ruflo/claude-flow setup, kept locally for reference (20 Oct 2026)
+.claude-ruflo-backup/

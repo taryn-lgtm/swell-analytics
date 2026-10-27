@@ -3,7 +3,7 @@ import Link from "next/link";
 import ChampionBadge from "@/components/ChampionBadge";
 import CountryTag from "@/components/CountryTag";
 import StatLine from "@/components/ui/StatLine";
-import { formatPriorWeight, formatTrim } from "@/lib/trim";
+import { formatPriorWeight, formatTrim, formatTrimRange } from "@/lib/trim";
 
 export interface SurferHeaderStat {
   label: string;
@@ -21,6 +21,10 @@ export interface SurferHeaderProps {
   trim: number | null;
   nHeats: number | null;
   priorWeight: number | null;
+  /** 95% half-width of the Trim figure (lib/trim trimHalfWidth95). */
+  halfWidth?: number | null;
+  /** Last rated heat label, e.g. "Lexus Pipe Pro 2025". */
+  lastHeat?: string | null;
   minHeats: number;
   /** How many of the rated surfers sit below the threshold, and of how many. */
   belowThreshold: number;
@@ -79,6 +83,12 @@ export default function SurferHeader(props: SurferHeaderProps) {
               CT {props.seasons.join(" and ")}
             </span>
           )}
+          {props.lastHeat && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>Last heat: {props.lastHeat}</span>
+            </>
+          )}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2">
           <h1 className="font-serif text-[clamp(2.8rem,8vw,6.5rem)] font-semibold italic leading-[1.06] tracking-[0.005em] text-fg">
@@ -105,13 +115,13 @@ export default function SurferHeader(props: SurferHeaderProps) {
             {priorPct != null && (
               <>
                 {" "}
-                — <span className="figures">{priorPct}%</span> of the figure below is still the
+                — <span className="figures">{priorPct}%</span>{" "}of the figure below is still the
                 prior every surfer starts at
               </>
             )}
             .{" "}
-            <span className="figures">{props.belowThreshold}</span> of the{" "}
-            <span className="figures">{props.ratedSurfers}</span> rated surfers are in the same
+            <span className="figures">{props.belowThreshold}</span>{" "}of the{" "}
+            <span className="figures">{props.ratedSurfers}</span>{" "}rated surfers are in the same
             position, which is why{" "}
             <Link href="/" className="text-link hover:underline">
               the leaderboard
@@ -121,43 +131,46 @@ export default function SurferHeader(props: SurferHeaderProps) {
         )}
 
         <dl className="mt-8 grid grid-cols-2 gap-x-8 border-t border-hairline sm:grid-cols-4 lg:grid-cols-7">
-          <div className="col-span-2 py-3 sm:col-span-1">
-            <StatLine
-              label="Trim"
-              value={formatTrim(props.trim)}
-              unit="pts per heat"
-              size="lg"
-              accent={!below && props.trim != null}
-            />
-          </div>
-          <div className="py-3">
-            <StatLine
-              label="Rated heats"
-              value={props.nHeats != null ? String(props.nHeats) : "—"}
-              unit={below ? `below ${props.minHeats}` : `at or above ${props.minHeats}`}
-              size="md"
-            />
-          </div>
-          <div className="py-3">
-            <StatLine
-              label="Prior weight"
-              value={formatPriorWeight(props.priorWeight)}
-              unit={priorPct != null ? `${priorPct}% of the rating` : undefined}
-              size="md"
-              bar={
-                props.priorWeight != null
-                  ? {
-                      fraction: props.priorWeight,
-                      label: `${priorPct}% of this rating is the starting prior`,
-                    }
-                  : undefined
-              }
-            />
-          </div>
+          <StatLine
+            term
+            className="col-span-2 py-3 sm:col-span-1"
+            label="Trim"
+            value={formatTrim(props.trim)}
+            // "pts" read as ranking points to anyone at the WSL (audit T1).
+            unit={
+              props.halfWidth != null
+                ? `per heat, ${formatTrimRange(props.halfWidth)} (95%)`
+                : "per heat"
+            }
+            size="lg"
+            accent={!below && props.trim != null}
+          />
+          <StatLine
+            term
+            className="py-3"
+            label="Rated heats"
+            value={props.nHeats != null ? String(props.nHeats) : "—"}
+            unit={below ? `below ${props.minHeats}` : `at or above ${props.minHeats}`}
+            size="md"
+          />
+          <StatLine
+            term
+            className="py-3"
+            label="Prior weight"
+            value={formatPriorWeight(props.priorWeight)}
+            unit={priorPct != null ? `${priorPct}% of the rating` : undefined}
+            size="md"
+            bar={
+              props.priorWeight != null
+                ? {
+                    fraction: props.priorWeight,
+                    label: `${priorPct}% of this rating is the starting prior`,
+                  }
+                : undefined
+            }
+          />
           {props.stats?.map((s) => (
-            <div key={s.label} className="py-3">
-              <StatLine label={s.label} value={s.value} unit={s.unit} size="md" />
-            </div>
+            <StatLine key={s.label} term className="py-3" label={s.label} value={s.value} unit={s.unit} size="md" />
           ))}
         </dl>
       </div>

@@ -37,7 +37,7 @@ import { join, relative } from "node:path";
 import yaml from "js-yaml";
 import { MANIFEST_DIR, RAW_DIR, REPO_ROOT, fail } from "./lib/retain.ts";
 import { stripNonMarkup } from "./lib/parse_results.ts";
-import { divisionsByHeat, heatOrder, popupLinksByHeat } from "./lib/parse_finals.ts";
+import { divisionsByHeat, heatOrder, popupLinksByHeat, titleMatchSeries } from "./lib/parse_finals.ts";
 
 function main(): void {
   const argv = process.argv.slice(2);
@@ -113,6 +113,31 @@ function main(): void {
 
   for (const h of mens) console.log(`    men's heat ${h}  ->  ${popups.get(h)}`);
 
+  // ---- the Title Match series (added 17 October 2026) --------------------
+  // The four blocks above are the four MATCHES. The Title Match is a series,
+  // and its heats after the first have no Details link on the page: they are
+  // reached from inside heat 1's popup. Before this, the manifest named one
+  // heat per match, so 2024 Title Match Heat 2 (102842) was refused by the
+  // collector as "not named by this round's manifest" and never collected.
+  const series = titleMatchSeries(markup, "mens");
+  if (series.heats.length === 0) fail(`no men's Title Match replay links found. Nothing written.`);
+  if (series.heats[0].wslHeatId !== mens[3]) {
+    fail(`Title Match heat 1 per the replay links is ${series.heats[0].wslHeatId}; the fourth men's block is ${mens[3]}.`);
+  }
+  const followOn = series.heats.slice(1).map((h) => ({
+    heat_id: h.wslHeatId,
+    parent_heat_id: series.heats[0].wslHeatId,
+    heat_number: h.heatNumber,
+    expected_totals: Object.fromEntries(h.totals),
+  }));
+  const leakedSeries = followOn.filter((f) => womens.includes(f.heat_id));
+  if (leakedSeries.length > 0) fail(`series heat(s) ${leakedSeries.map((f) => f.heat_id).join(", ")} are women's. Nothing written.`);
+  console.log(`  men's Title Match: ${series.resultText ?? "no result text"} over ${series.heats.length} heat(s)`);
+  for (const f of followOn) {
+    console.log(`    series heat ${f.heat_number}: ${f.heat_id}, reached from ${f.parent_heat_id}'s popup`);
+  }
+  const heatIds = [...mens, ...followOn.map((f) => f.heat_id)];
+
   // ---- write ------------------------------------------------------------
   const manifest = {
     generated_at: new Date().toISOString(),
@@ -144,7 +169,11 @@ function main(): void {
     },
     divisions: {
       discriminator: "the full-heat-replay link immediately preceding each heat block",
-      mens_heat_ids: mens,
+      mens_heat_ids: heatIds,
+      mens_title_match_series: {
+        result_text: series.resultText,
+        heat_ids: series.heats.map((h) => h.wslHeatId),
+      },
       womens_heat_ids: womens,
       womens_note:
         "Listed so the count is auditable and so nobody re-derives it. NOT collected: " +
@@ -157,10 +186,11 @@ function main(): void {
         round_id: null,
         round_name_displayed: "WSL Finals ladder",
         round_name_gtm: "WSL Finals ladder",
-        heats_declared: mens.length,
-        heats_observed: mens.length,
+        heats_declared: heatIds.length,
+        heats_observed: heatIds.length,
         heats_agree: true,
-        heat_ids: mens,
+        heat_ids: heatIds,
+        series_follow_on: followOn,
         counting_waves_present: false,
         artefact: {
           slug: pageSlug,
@@ -186,7 +216,7 @@ function main(): void {
   writeFileSync(out, JSON.stringify(manifest, null, 2) + "\n");
 
   console.log(`\n  -> ${relative(REPO_ROOT, out)}`);
-  console.log(`\n  Now collect the four men's popups:`);
+  console.log(`\n  Now collect the men's popups (${heatIds.length}):`);
   console.log(`     npm run collect-popups -- --season ${season} --event ${eventNumber}\n`);
 }
 

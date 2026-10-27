@@ -12,9 +12,15 @@
 -- HTML to the same lines and compares. Rounding is half away from zero
 -- (Postgres round() on numeric) everywhere -- decision 68.
 with
+-- trim is append-only and a recompute adds a run (migration 22): read the
+-- latest run only, the one v_trim_current and the site report.
+tr as (select * from trim where model_run_id = (select max(id) from trim_model_runs)),
 he as (
   select he.id as heid, he.surfer_id, he.position, he.heat_total, he.progression_text,
          h.id as heat_id, h.heat_number, h.wind_conditions, h.wave_height_published,
+         -- the heat number the site shows: none for a Finals match, the series
+         -- position for a Title Match heat (src/lib/finals.ts, 17 Oct 2026)
+         case when e.kind = 'wsl_finals' then case when r.round_order = 4 then h.heat_number - 3 end else h.heat_number end as label_heat,
          h.wave_height_min_ft, v.name as venue,
          r.round_order, r.name as round_name, r.counting_rides,
          e.season_year, e.event_number, e.name as event_name, e.kind,
@@ -30,7 +36,7 @@ he as (
   join events e on e.id = r.event_id
   left join venues v on v.id = h.venue_id
   left join datum d on d.heat_entry_id = he.id
-  left join trim t on t.heat_entry_id = he.id
+  left join tr t on t.heat_entry_id = he.id
 ),
 rides as (
   select w.heat_entry_id as heid,
@@ -47,7 +53,7 @@ pts as (  -- the timeline's population: heats with a model row and a residual
 cur as (  -- current Trim, re-derived from `trim`, not read from v_trim_current
   select distinct on (surfer_id) surfer_id, trim_after as trim, prior_weight,
          count(*) over (partition by surfer_id) as n
-  from trim order by surfer_id, seq desc
+  from tr order by surfer_id, seq desc
 ),
 below as (select count(*) filter (where n < 16) as nb, count(*) as nr from cur),
 run as (select * from trim_model_runs where id = (select max(model_run_id) from trim)),
@@ -82,8 +88,14 @@ lines as (
   union all select a.slug, 'header', 2, 'seasons=' || coalesce('CT ' || a.seasons, '') from agg a
   union all select a.slug, 'header', 3, 'titles=' || coalesce((select string_agg(year::text, ',' order by year)
       from seasons where world_champion_surfer_id = a.surfer_id), '') from agg a
-  union all select a.slug, 'header', 4, 'Trim=' || coalesce(round(c.trim, 3)::text, '—') || '|pts per heat'
-      from agg a left join cur c using (surfer_id)
+  -- The ± is the 95% half-width of an EWMA of iid residuals with sd = the
+  -- run's walk-forward RMSE: 1.96 sigma sqrt(a^2 (1 - (1-a)^(2n)) / (1 - (1-a)^2)).
+  -- Computed here independently of src/lib/trim.ts trimHalfWidth95 (M5).
+  union all select a.slug, 'header', 4, 'Trim=' || coalesce(round(c.trim, 3)::text, '—') || '|per heat'
+      || coalesce(', ± ' || to_char(round((1.96 * r.rmse_walkforward * sqrt(power(r.alpha, 2)
+           * (1 - power(1 - r.alpha, 2 * c.n)) / (1 - power(1 - r.alpha, 2))))::numeric, 2), 'FM990.00')
+         || ' (95%)', '')
+      from agg a left join cur c using (surfer_id) cross join run r
   union all select a.slug, 'header', 5, 'Rated heats=' || coalesce(c.n::text, '—') || '|'
       || case when c.n < 16 then 'below 16' else 'at or above 16' end
       from agg a left join cur c using (surfer_id)
@@ -101,7 +113,7 @@ lines as (
   union all select a.slug, 'header', 11, 'below=' || c.n || ',16,'
       || coalesce(round(c.prior_weight * 100)::int || '%,', '') || b.nb || ',' || b.nr
       from agg a join cur c using (surfer_id) cross join below b where c.n < 16
-  union all select a.slug, 'header', 12, 'logtitle=' || a.nheats || ' heats across ' || a.nevents
+  union all select a.slug, 'header', 12, 'logtitle=' || a.nheats || case when a.nheats = 1 then ' heat across ' else ' heats across ' end || a.nevents
       || case when a.nevents = 1 then ' event' else ' events' end from agg a where a.nheats > 0
   -------------------------------------------------------------- heat log
   union all
@@ -110,7 +122,7 @@ lines as (
       he.season_year::text,
       he.event_name,
       case when he.kind = 'wsl_finals' then 'F' else '' end,
-      he.round_name || coalesce(' · heat ' || he.heat_number, '') || coalesce(' · ' || he.venue, ''),
+      he.round_name || coalesce(' · heat ' || he.label_heat, '') || coalesce(' · ' || he.venue, ''),
       coalesce((select o from ord where n = he.position), '—'),
       coalesce(round(he.heat_total, 2)::text, '—'),
       coalesce(rd.pair || case when he.counting_rides is not null and rd.k <> he.counting_rides
@@ -143,7 +155,7 @@ lines as (
   union all
   select s.slug, 'timeline', 2 + p.i::int,
       'pt=Heat ' || p.i || ' — ' || p.season_year || ' ' || p.event_name || ' · ' || p.round_name
-      || coalesce(' heat ' || p.heat_number, '')
+      || coalesce(' heat ' || p.label_heat, '')
       || ' / Scored ' || coalesce(round(p.heat_total, 2)::text, '—') || ' against an expected '
       || coalesce(round(p.expected_score, 2)::text, '—')
       || ' (' || case when round(p.resid, 2) >= 0 then '+' else '' end || round(p.resid, 2)::text || ')'
@@ -163,9 +175,9 @@ lines as (
   from surfers s
   join lateral (
     select max(resid) as bmax, min(resid) as bmin, max(abs(resid)) as amax,
-      (select season_year || ' ' || event_name || ' · ' || round_name || coalesce(' heat ' || heat_number, '')
+      (select season_year || ' ' || event_name || ' · ' || round_name || coalesce(' heat ' || label_heat, '')
          from pts q where q.surfer_id = s.id order by resid desc, i limit 1) as blab,
-      (select season_year || ' ' || event_name || ' · ' || round_name || coalesce(' heat ' || heat_number, '')
+      (select season_year || ' ' || event_name || ' · ' || round_name || coalesce(' heat ' || label_heat, '')
          from pts q where q.surfer_id = s.id order by resid asc, i limit 1) as wlab
     from pts where surfer_id = s.id having count(*) > 0
   ) x on true

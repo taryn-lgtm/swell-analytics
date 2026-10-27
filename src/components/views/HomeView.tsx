@@ -13,7 +13,8 @@ import ReadingTheNumbers from "@/components/ReadingTheNumbers";
 import TrimLeaderboard, { type TrimLeaderboardRow } from "@/components/TrimLeaderboard";
 import Ridgeline from "@/components/Ridgeline";
 import { getRidgeSeries } from "@/lib/queries/ridgeline";
-import { formatScore } from "@/lib/format";
+import { fixed, formatScore } from "@/lib/format";
+import { TITLE_MATCH_ROUND_ORDER, displayHeatNumber, isFinals, seriesResult, titleMatchNote } from "@/lib/finals";
 import { eventSlug } from "@/lib/slug";
 import { TRIM_MIN_HEATS, formatTrim, formatTrimDelta, formatPriorWeight, num } from "@/lib/trim";
 import { getSeasons, seasonsListLabel } from "@/lib/queries/seasons";
@@ -87,6 +88,8 @@ export default async function HomeView({ showingAll }: { showingAll: boolean }) 
     trim: r.trim,
     nHeats: r.nHeats,
     priorWeight: r.priorWeight,
+    halfWidth: r.halfWidth,
+    lastHeat: r.lastHeat ? { label: `${r.lastHeat.eventName} ${r.lastHeat.seasonYear}` } : null,
     champion:
       championYearBySurfer.has(r.surferId) ? { year: championYearBySurfer.get(r.surferId)! } : null,
   }));
@@ -111,16 +114,18 @@ export default async function HomeView({ showingAll }: { showingAll: boolean }) 
           {seasonsLabel || "no seasons loaded"}
         </p>
         <h1 className="mt-5 font-serif text-[clamp(3rem,9vw,7.5rem)] font-semibold italic leading-[1.06] tracking-[0.005em] text-fg">
-          Who is surfing
+          {/* Past tense: the record ends with the held results, and a reader takes
+              present tense as current form (WSL-analyst audit P1-1, 17 Oct 2026). */}
+          Who surfed
           <br />
           <span className="text-accent">above the line.</span>
         </h1>
         <p className="mt-6 max-w-[62ch] text-[1.08rem] leading-relaxed text-fg-muted">
-          Every line is one surfer&apos;s heats, in order. <b className="font-semibold text-fg">Sand rises</b> where
+          Every line is one surfer&apos;s heats, in order. <b className="font-semibold text-fg">Sand rises</b>{" "}where
           he scored more than Datum expected for that round, <b className="font-semibold text-fg">sea dips</b>{" "}
           where
           he scored less. They&apos;re stacked by Trim, the running measure of how far above or below that line
-          each surfer has been lately. Hover a line to lift it out.
+          each surfer was over their most recent heats in these seasons. Hover a line to lift it out.
         </p>
         {ridgeRows.length > 0 && (
           <div className="mt-10">
@@ -145,7 +150,7 @@ export default async function HomeView({ showingAll }: { showingAll: boolean }) 
         <h2 className="mt-1 font-display text-[clamp(1.4rem,2.6vw,2rem)] font-semibold leading-[1.1] tracking-[-0.02em] text-fg">
           Trim, surfer by surfer
         </h2>
-        <p className="mt-3 max-w-3xl text-body text-fg-muted">
+        <p className="mt-3 max-w-[72ch] text-body text-fg-muted">
           How far each surfer beats what Datum expects of the round they are surfing,
           weighted so recent heats count more, accumulated heat by heat. The unit is
           points per heat on the 0–20 scale. Read the prior-weight column before reading
@@ -191,6 +196,12 @@ export default async function HomeView({ showingAll }: { showingAll: boolean }) 
             total={trimCurrent.length}
           />
         </div>
+        <p className="mb-4 max-w-[70ch] text-body-sm text-fg-muted">
+          The ± under each Trim is its 95% range from heat-to-heat noise. Where two surfers&apos;
+          ranges overlap, the order between them isn&apos;t meaningful: read the table in bands,
+          not places. &ldquo;Last heat&rdquo; is when each surfer last surfed a rated heat in these
+          seasons.
+        </p>
         {leaderboard.length > 0 ? (
           <TrimLeaderboard rows={leaderboard} minHeats={TRIM_MIN_HEATS} />
         ) : (
@@ -203,11 +214,11 @@ export default async function HomeView({ showingAll }: { showingAll: boolean }) 
           the last row per surfer in <code className="figures">v_trim_current</code>
           {modelRun && (
             <>
-              , model run <span className="figures">{modelRun.id}</span> (
+              , model run <span className="figures">{modelRun.id}</span>{" "}(
               <span className="figures">{modelRun.spec}</span>, computed{" "}
               <span className="figures">{modelRun.computed_on}</span>) over{" "}
-              <span className="figures">{modelRun.n_entries.toLocaleString("en-GB")}</span> heat entries and{" "}
-              <span className="figures">{modelRun.n_surfers}</span> surfers
+              <span className="figures">{modelRun.n_entries.toLocaleString("en-GB")}</span>{" "}heat entries and{" "}
+              <span className="figures">{modelRun.n_surfers}</span>{" "}surfers
             </>
           )}
           . Prior weight is the share of a surfer&apos;s rating that is still the
@@ -216,7 +227,7 @@ export default async function HomeView({ showingAll }: { showingAll: boolean }) 
             <>
               {" "}
               — a surfer with four heats is{" "}
-              <span className="figures">{Math.round(fourHeatPrior * 100)}%</span> prior and
+              <span className="figures">{Math.round(fourHeatPrior * 100)}%</span>{" "}prior and
               their Trim says almost nothing about them
             </>
           )}
@@ -229,7 +240,7 @@ export default async function HomeView({ showingAll }: { showingAll: boolean }) 
               {" "}
               The recency weighting itself earns nothing measurable on two seasons: an
               undecayed shrunk mean of the same residuals is indistinguishable, paired{" "}
-              <span className="figures">t = {pairedT.toFixed(3)}</span>
+              <span className="figures">t = {fixed(pairedT, 3)}</span>
               {modelRun && (
                 <>
                   {" "}
@@ -303,7 +314,7 @@ function MoversList({ movers, event }: { movers: Mover[]; event: LatestEvent | n
                 </div>
                 <p className="mt-1 text-caption text-fg-subtle">
                   <span className="figures">{formatTrim(m.trimBefore)}</span> →{" "}
-                  <span className="figures">{formatTrim(m.trimAfter)}</span> over{" "}
+                  <span className="figures">{formatTrim(m.trimAfter)}</span>{" "}over{" "}
                   <span className="figures">{m.heatsAtEvent}</span>{" "}
                   {m.heatsAtEvent === 1 ? "heat" : "heats"} · prior weight{" "}
                   <span className="figures">{formatPriorWeight(m.priorWeight)}</span>
@@ -321,10 +332,10 @@ function MoversList({ movers, event }: { movers: Mover[]; event: LatestEvent | n
       <div className="px-4 pb-3">
         <ProvenancePanel>
           the Trim each surfer arrived at{" "}
-          <span className="figures">{event.name}</span> with and the Trim they left with:{" "}
-          <code className="figures">trim_before</code> of their first heat there,{" "}
-          <code className="figures">trim_after</code> of their last, for the{" "}
-          <span className="figures">{movers.length}</span> surfers with a rated heat at the
+          <span className="figures">{event.name}</span>{" "}with and the Trim they left with:{" "}
+          <code className="figures">trim_before</code>{" "}of their first heat there,{" "}
+          <code className="figures">trim_after</code>{" "}of their last, for the{" "}
+          <span className="figures">{movers.length}</span>{" "}surfers with a rated heat at the
           event. The window is this one event; a window over a fixed number of heats
           is an open design decision.
         </ProvenancePanel>
@@ -399,11 +410,23 @@ function LatestEventPanel({ event }: { event: LatestEvent }) {
           <li key={h.heatId} className="grid gap-x-4 px-4 py-2 sm:grid-cols-[9rem_1fr]">
             <div className="text-caption font-semibold tracking-[0.04em] text-fg-muted">
               {h.roundName ?? `Round ${h.roundOrder}`}
-              {h.heatNumber != null && event.heats.filter((x) => x.roundOrder === h.roundOrder).length > 1 && (
-                <span className="figures ml-1 font-medium normal-case tracking-normal text-fg-subtle">
-                  H{h.heatNumber}
-                </span>
-              )}
+              {displayHeatNumber(event.kind, h.roundOrder, h.heatNumber) != null &&
+                event.heats.filter((x) => x.roundOrder === h.roundOrder).length > 1 && (
+                  <span className="figures ml-1 font-medium normal-case tracking-normal text-fg-subtle">
+                    H{displayHeatNumber(event.kind, h.roundOrder, h.heatNumber)}
+                  </span>
+                )}
+              {/* The Title Match's format and result, once, under its first heat. */}
+              {isFinals(event.kind) &&
+                h.roundOrder === TITLE_MATCH_ROUND_ORDER &&
+                event.heats.find((x) => x.roundOrder === TITLE_MATCH_ROUND_ORDER) === h && (
+                  <span className="mt-0.5 block text-caption font-normal normal-case tracking-normal text-fg-subtle">
+                    {titleMatchNote(
+                      event.seasonYear,
+                      seriesResult(event.heats.filter((x) => x.roundOrder === TITLE_MATCH_ROUND_ORDER)),
+                    )}
+                  </span>
+                )}
             </div>
             <ol className="text-stat">
               {h.entries.map((en) => (
@@ -430,13 +453,10 @@ function LatestEventPanel({ event }: { event: LatestEvent }) {
 
       <div className="px-4 pb-3">
         <ProvenancePanel>
-          <code className="figures">rounds</code>, <code className="figures">heats</code> and{" "}
-          <code className="figures">heat_entries</code> for this event, ordered by{" "}
-          <code className="figures">round_order</code> as the rounds exist — never generated.
-          Placings are the published <code className="figures">position</code>, never a
-          re-sort by total; a heat total of — is an unmeasured heat, not a scoreless one.
-          The winner is shown only where WSL publishes a finishing position of 1; for
-          regular events it does not, and no winner is derived from the final heat.
+          every heat of this event as WSL published it, in round order. Placings are WSL&apos;s
+          own, never a re-sort by total, and a heat total shown as — was not published, which
+          is not the same as a score of zero. The winner is WSL&apos;s published first place;
+          no winner is worked out from the final heat.
           Venue is read per heat, not from the event.{" "}
           <Link href={`/events/${eventSlug(event.slug, event.seasonYear)}`} className="text-link hover:underline">
             Full event →

@@ -5,7 +5,7 @@ import DataTable, { type Column } from "@/components/ui/DataTable";
 import { MeasureBar } from "@/components/ui/StatLine";
 import CountryTag from "@/components/CountryTag";
 import ChampionBadge from "@/components/ChampionBadge";
-import { formatPriorWeight, formatTrim } from "@/lib/trim";
+import { formatPriorWeight, formatTrim, formatTrimRange } from "@/lib/trim";
 
 /**
  * The ranked Trim table -- docs/trim_v1.html carried into the route.
@@ -31,6 +31,10 @@ export interface TrimLeaderboardRow {
   trim: number;
   nHeats: number;
   priorWeight: number;
+  /** 95% half-width of the Trim figure (lib/trim trimHalfWidth95). */
+  halfWidth: number | null;
+  /** Last rated heat, e.g. "Pipe 2025", so old form is never read as current. */
+  lastHeat: { label: string } | null;
   /** True for the explicit seasons.world_champion_surfer_id -- never inferred. */
   champion: { year: number } | null;
 }
@@ -75,6 +79,9 @@ export default function TrimLeaderboard({
             {r.champion && <ChampionBadge compact year={r.champion.year} />}
           </span>
           <CountryTag code={r.countryCode} />
+          {r.lastHeat && (
+            <span className="text-caption text-fg-subtle">Last heat: {r.lastHeat.label}</span>
+          )}
         </span>
       ),
     },
@@ -91,6 +98,11 @@ export default function TrimLeaderboard({
           <span className={`text-body ${r.rank === 1 && r.trim === leaderTrim ? "font-semibold" : "font-medium"}`}>
             {formatTrim(r.trim)}
           </span>
+          {r.halfWidth != null && (
+            <span className="figures text-caption text-fg-subtle" title="95% range from sampling noise">
+              {formatTrimRange(r.halfWidth)}
+            </span>
+          )}
           <span className="w-full">
             <MeasureBar
               fraction={maxTrim > 0 ? Math.max(0, r.trim) / maxTrim : 0}

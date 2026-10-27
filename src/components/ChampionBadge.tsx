@@ -30,7 +30,10 @@ export default function ChampionBadge({
   const label = year ? `${year} World Champion` : "World Champion";
   if (compact) {
     return (
+      // role="img": an aria-label on a plain span is not announced
+      // (axe aria-prohibited-attr, 17 October audit).
       <span
+        role="img"
         title={label}
         aria-label={label}
         className="inline-flex items-center text-accent"

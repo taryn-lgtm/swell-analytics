@@ -44,6 +44,8 @@ export interface SurferSummary {
   /** Heats carrying a Datum residual. */
   withDatum: number;
   meanVsDatum: number | null;
+  /** Sample standard deviation of those residuals; null under two heats. */
+  sdVsDatum: number | null;
 }
 
 export interface Meeting {
@@ -112,6 +114,7 @@ export function summarise(ds: CompareDataset, surferId: number, season: number |
     bestTotal: totals.length ? Math.max(...totals) : null,
     withDatum: residuals.length,
     meanVsDatum: exactMean(residuals, RESIDUAL_DP),
+    sdVsDatum: sampleSd(residuals),
   };
 }
 
@@ -232,4 +235,29 @@ export function defaultPair(ds: CompareDataset): [number, number] | null {
     }
   }
   return best;
+}
+
+function sampleSd(xs: number[]): number | null {
+  if (xs.length < 2) return null;
+  const m = xs.reduce((a, b) => a + b, 0) / xs.length;
+  return Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / (xs.length - 1));
+}
+
+/**
+ * Whether two surfers' average-vs-Datum figures can be told apart: the gap
+ * against 1.96 times the standard error of the difference (each mean's
+ * SE = sd / sqrt(n)). Added for M5 after the WSL-analyst audit, which found
+ * /compare presenting a 0.5 gap on about 60 heats each as if it meant
+ * something when the noise was about 0.4 per surfer.
+ */
+export function vsDatumGap(a: SurferSummary, b: SurferSummary): {
+  gap: number;
+  threshold: number;
+  distinguishable: boolean;
+} | null {
+  if (a.meanVsDatum == null || b.meanVsDatum == null || a.sdVsDatum == null || b.sdVsDatum == null) return null;
+  const se = Math.sqrt(a.sdVsDatum ** 2 / a.withDatum + b.sdVsDatum ** 2 / b.withDatum);
+  const gap = Math.abs(a.meanVsDatum - b.meanVsDatum);
+  const threshold = 1.96 * se;
+  return { gap, threshold, distinguishable: gap > threshold };
 }

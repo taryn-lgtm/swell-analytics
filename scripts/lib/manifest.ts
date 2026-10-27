@@ -24,6 +24,21 @@ export interface RoundFromManifest {
   file_path: string;
   /** Set when this round's heats are served by another round's page. */
   served_by_round_page?: string;
+  /**
+   * Heats with no Details link of their own, reached from inside another
+   * heat's popup: the WSL Finals Title Match heats after the first. Each names
+   * the heat whose popup links to it and the totals the results page publishes
+   * for it, which the collector holds the capture to.
+   */
+  series_follow_on: SeriesFollowOn[];
+}
+
+export interface SeriesFollowOn {
+  heat_id: string;
+  parent_heat_id: string;
+  heat_number: number;
+  /** WSL athlete id -> heat total, as the series block on the results page publishes them. */
+  expected_totals: Record<string, number>;
 }
 
 export interface EventFromManifest {
@@ -94,6 +109,16 @@ export function loadEventManifest(season: number, eventNumber: number): EventFro
         file_path: art.file_path,
         served_by_round_page:
           typeof r.served_by_round_page === "string" ? r.served_by_round_page : undefined,
+        series_follow_on: Array.isArray(r.series_follow_on)
+          ? r.series_follow_on.filter(isRecord).map((s) => ({
+              heat_id: String(s.heat_id),
+              parent_heat_id: String(s.parent_heat_id),
+              heat_number: Number(s.heat_number),
+              expected_totals: isRecord(s.expected_totals)
+                ? Object.fromEntries(Object.entries(s.expected_totals).map(([k, v]) => [k, Number(v)]))
+                : {},
+            }))
+          : [],
       });
     }
 

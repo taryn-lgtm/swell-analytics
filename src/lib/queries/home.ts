@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { db } from "@/lib/db/server";
 import type { Tables } from "@/lib/database.types";
-import { num } from "@/lib/trim";
+import { num, trimHalfWidth95 } from "@/lib/trim";
 
 /**
  * Data for `/` -- the three modules the plan's M3 cap names for the home
@@ -29,14 +29,24 @@ export interface TrimCurrentRow {
   nHeats: number;
   priorWeight: number;
   lastSeason: number | null;
+  /** 95% half-width of the Trim figure; null if the model run lacks alpha or RMSE. */
+  halfWidth: number | null;
+  /** The surfer's last rated heat, so a 2024-25 figure is never read as current form. */
+  lastHeat: { seasonYear: number; eventNumber: number; eventName: string; eventSlug: string; endDate: string | null } | null;
 }
 
 export const getTrimCurrent = cache(async (): Promise<TrimCurrentRow[]> => {
-  const { data, error } = await db
-    .from("v_trim_current")
-    .select("surfer_id, full_name, slug, country_code, trim, n_heats, prior_weight, last_season")
-    .order("trim", { ascending: false });
+  const [{ data, error }, run, lastHeats] = await Promise.all([
+    db
+      .from("v_trim_current")
+      .select("surfer_id, full_name, slug, country_code, trim, n_heats, prior_weight, last_season")
+      .order("trim", { ascending: false }),
+    getTrimModelRun(),
+    getLastRatedHeats(),
+  ]);
   if (error) throw new Error(`v_trim_current query failed: ${error.message}`);
+  const alpha = num(run?.alpha);
+  const sigma = num(run?.rmse_walkforward);
 
   const rows: TrimCurrentRow[] = [];
   for (const r of data) {
@@ -66,9 +76,58 @@ export const getTrimCurrent = cache(async (): Promise<TrimCurrentRow[]> => {
       nHeats,
       priorWeight,
       lastSeason: r.last_season,
+      halfWidth: alpha != null && sigma != null ? trimHalfWidth95(nHeats, alpha, sigma) : null,
+      lastHeat: lastHeats.get(r.surfer_id) ?? null,
     });
   }
   return rows;
+});
+
+/**
+ * Each surfer's last rated heat under the latest model run: the trim row with
+ * the highest seq, joined to its event. Paged, because PostgREST stops at
+ * 1,000 rows without saying so.
+ */
+const getLastRatedHeats = cache(async () => {
+  const run = await getTrimModelRun();
+  const out = new Map<
+    number,
+    { seasonYear: number; eventNumber: number; eventName: string; eventSlug: string; endDate: string | null }
+  >();
+  if (!run) return out;
+  const last = new Map<number, { seq: number; season: number; event: number }>();
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db
+      .from("trim")
+      .select("surfer_id, seq, season_year, event_number")
+      .eq("model_run_id", run.id)
+      .order("id")
+      .range(from, from + 999);
+    if (error) throw new Error(`trim (last heats) query failed: ${error.message}`);
+    for (const t of data) {
+      const cur = last.get(t.surfer_id);
+      if (!cur || t.seq > cur.seq) last.set(t.surfer_id, { seq: t.seq, season: t.season_year, event: t.event_number });
+    }
+    if (data.length < 1000) break;
+  }
+  const { data: events, error } = await db.from("events").select("season_year, event_number, name, slug, end_date");
+  if (error) throw new Error(`events (last heats) query failed: ${error.message}`);
+  const byKey = new Map(events.map((e) => [`${e.season_year}-${e.event_number}`, e]));
+  for (const [surferId, l] of last) {
+    const e = byKey.get(`${l.season}-${l.event}`);
+    if (!e) {
+      console.error(`last rated heat for surfer ${surferId} points at a missing event ${l.season}-${l.event}`);
+      continue;
+    }
+    out.set(surferId, {
+      seasonYear: l.season,
+      eventNumber: l.event,
+      eventName: e.name,
+      eventSlug: e.slug,
+      endDate: e.end_date,
+    });
+  }
+  return out;
 });
 
 export type TrimModelRun = Tables<"trim_model_runs">;
@@ -304,9 +363,12 @@ export interface Mover {
  */
 export const getMoversAtEvent = cache(
   async (seasonYear: number, eventNumber: number): Promise<Mover[]> => {
+    // The latest run only: trim is append-only and a recompute adds a run.
+    const run = await getTrimModelRun();
     const { data, error } = await db
       .from("trim")
       .select("surfer_id, seq, trim_before, trim_after, prior_weight")
+      .eq("model_run_id", run?.id ?? -1)
       .eq("season_year", seasonYear)
       .eq("event_number", eventNumber)
       .order("seq", { ascending: true });

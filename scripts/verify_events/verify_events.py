@@ -89,7 +89,11 @@ def canon(html):
     # movement
     lines = [f"movers_n={t(soup.select_one('[data-v=movers-n]'))}"]
     for tr in soup.select("table[data-v=movement] tr[data-mover]"):
-        lines.append("|".join(t(tr.select_one(f"[data-v={k}]")) for k in ("surfer", "heats", "before", "after", "delta", "prior")))
+        # before/after: the site draws U+2212, the SQL's to_char a hyphen.
+        # delta: both draw U+2212 (the SQL spells it out). Compare values.
+        cells = [t(tr.select_one(f"[data-v={k}]")) for k in ("surfer", "heats", "before", "after", "delta", "prior")]
+        cells[2:4] = [c.replace("\u2212", "-") if c else c for c in cells[2:4]]
+        lines.append("|".join(cells))
     out["movement"] = "\n".join(lines)
     return out
 

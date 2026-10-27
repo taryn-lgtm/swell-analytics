@@ -156,9 +156,17 @@ round_structures:
       - {name: Match 2, contestants: [winner_match_1, seed_3], priority: seed_3, winner_to: Match 3}
       - {name: Match 3, contestants: [winner_match_2, seed_2], priority: seed_2, winner_to: Final Match}
       - {name: Final Match, contestants: [winner_match_3, seed_1], priority: seed_1, best_of: 3, winner: world_champion}
+    final_match_source: >
+      rulebook 1.06(e)(iv), 2024 and 2025 editions: "The Final Match is best of
+      three (3) heats." Checked 17 October 2026.
     schema_implication: >
       The Final Match is best of three heats. A "Final" is not always one heat.
-      Any model assuming one heat per round name will break here.
+      Any model assuming one heat per round name will break here. CORRECTED 17
+      October 2026: the series rule can differ by season. From 2025 the world
+      #1 takes the title by winning Heat 1 (2025.yaml, final_match_rule), so a
+      one-heat Title Match is not by itself a missing heat. Read the series
+      result the results page publishes ("Wins 2 - 0") and load every heat it
+      shows -- 2024's Heat 2 was missed for two months by reading only the first.
     injury_rule:
       replacement_permitted: false
       source: rulebook 1.05(e)

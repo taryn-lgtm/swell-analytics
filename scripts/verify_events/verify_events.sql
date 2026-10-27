@@ -6,11 +6,15 @@ with ev as (
 ),
 rnd as (select * from rounds where name is not null),
 ht as (
-  select h.*, r.event_id, r.round_order, r.name as round_name, v.name as venue_name
-  from heats h join rnd r on r.id = h.round_id left join venues v on v.id = h.venue_id
+  select h.*, r.event_id, r.round_order, r.name as round_name, v.name as venue_name,
+         -- the heat number the site shows: none for a Finals match, the series
+         -- position for a Title Match heat (src/lib/finals.ts, 17 Oct 2026)
+         case when e.kind = 'wsl_finals' then case when r.round_order = 4 then h.heat_number - 3 end else h.heat_number end as label_heat
+  from heats h join rnd r on r.id = h.round_id join events e on e.id = r.event_id
+  left join venues v on v.id = h.venue_id
 ),
 he as (
-  select x.*, h.event_id, h.round_order, h.round_name, h.heat_number, h.venue_name,
+  select x.*, h.event_id, h.round_order, h.round_name, h.heat_number, h.label_heat, h.venue_name,
          h.wave_height_published, h.wind_conditions, s.full_name
   from heat_entries x join ht h on h.id = x.heat_id join surfers s on s.id = x.surfer_id
 ),
@@ -39,7 +43,7 @@ hdr as (
 ),
 -- ---- draw: the first named round's heats, names in codepoint order ----
 draw as (
-  select ev.id, string_agg(coalesce('Heat ' || lpad(he.heat_number::text, 2, '0'), 'Heat') || ':' || he.full_name, E'\n'
+  select ev.id, string_agg(coalesce('Heat ' || lpad(he.label_heat::text, 2, '0'), 'Heat') || ':' || he.full_name, E'\n'
            order by he.heat_number, he.full_name collate "C") as txt
   from ev join he on he.event_id = ev.id
   where he.round_order = (select min(round_order) from rnd where event_id = ev.id)
@@ -91,7 +95,7 @@ rides as (
 hl as (
   select he.event_id as id, string_agg(concat_ws('|',
       he.round_name,
-      coalesce('Heat ' || lpad(he.heat_number::text, 2, '0'), 'Heat'),
+      coalesce('Heat ' || lpad(he.label_heat::text, 2, '0'), 'Heat'),
       coalesce(he.venue_name, 'venue unknown'),
       case when he.wave_height_published is not null or he.wind_conditions is not null
         then coalesce(he.wave_height_published, '—') || ' · ' || coalesce(he.wind_conditions, '—')
@@ -112,6 +116,8 @@ mv_rows as (
     (array_agg(t.trim_after order by t.seq desc))[1] ta,
     (array_agg(t.prior_weight order by t.seq desc))[1] pw
   from ev join trim t on t.season_year = ev.season_year and t.event_number = ev.event_number
+    -- latest run only: trim is append-only and a recompute adds a run (migration 22)
+    and t.model_run_id = (select max(id) from trim_model_runs)
   group by 1, 2
 ),
 mv as (

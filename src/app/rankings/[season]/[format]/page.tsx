@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import type { Metadata } from "next";
 import RankingsView from "@/components/views/RankingsView";
 import { getSeasons } from "@/lib/queries/seasons";
@@ -18,15 +19,24 @@ export async function generateStaticParams() {
   return years.flatMap((season) => FORMATS.map((format) => ({ season, format })));
 }
 
-export const metadata: Metadata = {
-  title: "Rankings",
-  description:
-    "Men's Championship Tour season rankings: cumulative points with the published throwaway excluded, the Final Five in their published order, and each surfer's Trim.",
-  robots: { index: false },
-};
-
 interface Props {
   params: Promise<{ season: string; format: string }>;
+}
+
+/* Titled by what the variant shows, so tabs and history tell them apart.
+   noindex, canonical to /rankings. */
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { season, format } = await params;
+  const what = [/^\d{4}$/.test(season) ? season : null, format === "cumulative" ? "cumulative points" : "Final Five"]
+    .filter(Boolean)
+    .join(", ");
+  return {
+    title: `Rankings ${what}`,
+    description:
+      "Men's Championship Tour season rankings: cumulative points with the published throwaway excluded, the Final Five in their published order, and each surfer's Trim.",
+    robots: { index: false },
+    ...pageMeta("/rankings"),
+  };
 }
 
 export default async function RankingsVariantPage({ params }: Props) {

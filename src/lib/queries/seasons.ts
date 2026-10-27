@@ -42,3 +42,26 @@ export function seasonsListLabel(seasons: { year: number }[]): string {
   if (years.length === 1) return years[0];
   return `${years.slice(0, -1).join(", ")} and ${years[years.length - 1]}`;
 }
+
+/**
+ * The date the held results run to: the latest event end date in v2, as
+ * "4 September 2025". Read, never typed: the chrome said it as a literal
+ * until 23 October 2026, which M6's 2026 season would have made false.
+ */
+export const getResultsThrough = cache(async (): Promise<string | null> => {
+  const { data, error } = await db
+    .from("events")
+    .select("end_date")
+    .not("end_date", "is", null)
+    .order("end_date", { ascending: false })
+    .limit(1);
+  if (error) throw new Error(`events (results through) query failed: ${error.message}`);
+  const d = data[0]?.end_date;
+  if (!d) return null;
+  return new Date(`${d}T00:00:00Z`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+});

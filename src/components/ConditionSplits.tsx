@@ -1,5 +1,5 @@
 import { MeasureBar } from "@/components/ui/StatLine";
-import { formatDerived, formatDerivedSigned, formatScore } from "@/lib/format";
+import { formatDerived, formatDerivedSigned, formatScore, plural } from "@/lib/format";
 import type { ConditionSplit } from "@/lib/queries/surfer";
 
 /**
@@ -47,12 +47,12 @@ export default function ConditionSplits({
         Datum V1 is a ridge on the round alone: break, wave type and field size were tested on
         27 August and dropped, because adding them made the leave-one-event-out error worse rather
         than better. The &ldquo;vs Datum&rdquo; column in each split is therefore this surfer&apos;s
-        deviation from what that <em>round</em> usually yields, averaged over the heats that fall in
+        deviation from what that <em>round</em>{" "}usually yields, averaged over the heats that fall in
         the split. It is a description of where he scored, not a measurement of conditions he
         favours, and a difference between two rows here is not evidence that either caused
         anything. Computed over the{" "}
-        <span className="figures">{heatsWithConditions}</span> of his{" "}
-        <span className="figures">{totalHeats}</span> heats whose popup was retained and publishes
+        <span className="figures">{heatsWithConditions}</span>{" "}of his{" "}
+        <span className="figures">{totalHeats}</span>{" "}{plural(totalHeats, "heat")} whose popup was retained and publishes
         both figures; the remainder are absent from these tables rather than pooled into an
         &ldquo;unknown&rdquo; row.
       </p>
@@ -153,7 +153,7 @@ function SplitTable({
       </div>
       <p className="mt-2 text-caption text-fg-subtle">
         &ldquo;Heats&rdquo; counts the rated heats in the split; where a heat carries no published
-        total it is shown as <span className="figures">rated of total</span> and left out of the
+        total it is shown as <span className="figures">rated of total</span>{" "}and left out of the
         means.
       </p>
     </div>

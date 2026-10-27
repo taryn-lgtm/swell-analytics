@@ -7,6 +7,34 @@
 
 export const EM_DASH = "—";
 
+/** U+2212, the typographic minus every negative figure on the site uses. */
+export const MINUS = "\u2212";
+
+/**
+ * The one place a negative sign is drawn. `toFixed` and `toLocaleString`
+ * emit a hyphen-minus; the site's signed deltas already used U+2212, so a
+ * table could print `-0.012` and `−0.012` in the same row (17 October audit).
+ * Every figure formatter below ends here.
+ */
+export function withMinus(s: string): string {
+  return s.startsWith("-") ? MINUS + s.slice(1) : s;
+}
+
+/** A fixed-decimal figure with a typographic minus (axis ticks, raw residuals). */
+export function fixed(value: number, dp: number): string {
+  return withMinus(value.toFixed(dp));
+}
+
+/** "1 heat", "2 heats". `many` defaults to `one` + "s". */
+export function plural(n: number, one: string, many = `${one}s`): string {
+  return n === 1 ? one : many;
+}
+
+/** `${n} heat(s)` with the count. */
+export function countOf(n: number, one: string, many?: string): string {
+  return `${n} ${plural(n, one, many)}`;
+}
+
 export function formatPoints(points: number | null | undefined): string {
   if (points == null) return EM_DASH;
   return points.toLocaleString("en-US");
@@ -66,14 +94,14 @@ export function exactMean(values: number[], dp: number): number | null {
 /** A derived figure at `dp` decimals, rounded by the rule above. */
 export function formatDerived(value: number | null | undefined, dp = 2): string {
   if (value == null || Number.isNaN(value)) return EM_DASH;
-  return roundHalfUp(value, dp).toFixed(dp);
+  return withMinus(roundHalfUp(value, dp).toFixed(dp));
 }
 
 /** As formatDerived, with the sign always shown (residuals, deltas). */
 export function formatDerivedSigned(value: number | null | undefined, dp = 2): string {
   if (value == null || Number.isNaN(value)) return EM_DASH;
   const r = roundHalfUp(value, dp);
-  return `${r >= 0 ? "+" : ""}${r.toFixed(dp)}`;
+  return `${r >= 0 ? "+" : ""}${withMinus(r.toFixed(dp))}`;
 }
 
 export type ScoreBand = "excellent" | "good" | "normal";

@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/ui/Container";
@@ -6,7 +7,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import StatLine from "@/components/ui/StatLine";
 import ProvenancePanel from "@/components/Provenance";
 import { formatTrim, formatPriorWeight, num, TRIM_MIN_HEATS } from "@/lib/trim";
-import { EM_DASH } from "@/lib/format";
+import { EM_DASH, fixed, plural } from "@/lib/format";
 import { getSeasons, seasonsListLabel } from "@/lib/queries/seasons";
 import { getAboutData } from "@/lib/queries/about";
 
@@ -31,6 +32,7 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "What Datum and Trim measure, what the data covers, and the three limits that matter before reading any figure on this site.",
+  ...pageMeta("/about"),
 };
 
 /** A share as a percentage to the nearest point, for prose. */
@@ -76,7 +78,7 @@ export default async function AboutPage() {
         <h1 className="mt-4 font-serif text-[clamp(2.6rem,7vw,5.5rem)] font-semibold italic leading-[1.06] tracking-[0.005em] text-fg">
           How the numbers are made.
         </h1>
-        <p className="mt-3 max-w-3xl text-body text-fg-muted">
+        <p className="mt-3 max-w-[72ch] text-body text-fg-muted">
           This site holds every heat of the Men&apos;s Championship Tour seasons named above,
           as the World Surf League published them, and adds two measures of its own:{" "}
           <strong className="font-medium text-fg">Datum</strong>, what a round is worth, and{" "}
@@ -98,7 +100,7 @@ export default async function AboutPage() {
           kicker="Read this first"
           title="Three limits"
         />
-        <p className="mb-5 max-w-3xl text-body text-fg-muted">
+        <p className="mb-5 max-w-[72ch] text-body text-fg-muted">
           Every figure on this site is true to a row, but a figure being correct is not the
           same as a figure being strong. These three shape what any Trim number can
           honestly be taken to mean.
@@ -115,7 +117,7 @@ export default async function AboutPage() {
             </h3>
             <p className="mt-3 text-body-sm leading-relaxed text-fg-muted">
               The database holds{" "}
-              <span className="figures">{seasons.length}</span> season
+              <span className="figures">{seasons.length}</span>{" "}season
               {seasons.length === 1 ? "" : "s"} and nothing else. Earlier Championship Tour
               years are not loaded, so nothing here should be read as a career record or an
               all-time standing. Where the site names its coverage it lists the seasons one
@@ -123,10 +125,10 @@ export default async function AboutPage() {
               are held.
             </p>
             <ProvenancePanel label="Computed over">
-              the <code className="figures">seasons</code> table, which is itself the
-              coverage statement: <span className="figures">{n(coverage.events)}</span> events,{" "}
-              <span className="figures">{n(coverage.heats)}</span> heats and{" "}
-              <span className="figures">{n(coverage.surfers)}</span> surfers across them.
+              the <code className="figures">seasons</code>{" "}table, which is itself the
+              coverage statement: <span className="figures">{n(coverage.events)}</span>{" "}events,{" "}
+              <span className="figures">{n(coverage.heats)}</span>{" "}heats and{" "}
+              <span className="figures">{n(coverage.surfers)}</span>{" "}surfers across them.
             </ProvenancePanel>
           </Card>
 
@@ -136,13 +138,13 @@ export default async function AboutPage() {
               Two · the threshold
             </p>
             <h3 className="mt-1 font-display text-heading font-bold text-fg">
-              <span className="figures">{TRIM_MIN_HEATS}</span> heats, filtered by default
+              <span className="figures">{TRIM_MIN_HEATS}</span>{" "}heats, filtered by default
             </h3>
             <p className="mt-3 text-body-sm leading-relaxed text-fg-muted">
               The leaderboard shows{" "}
-              <span className="figures">{n(trim.atThreshold)}</span> of{" "}
-              <span className="figures">{n(trim.rated)}</span> rated surfers by default,
-              hiding those below <span className="figures">{TRIM_MIN_HEATS}</span> heats.
+              <span className="figures">{n(trim.atThreshold)}</span>{" "}of{" "}
+              <span className="figures">{n(trim.rated)}</span>{" "}rated surfers by default,
+              hiding those below <span className="figures">{TRIM_MIN_HEATS}</span>{" "}heats.
               That is <strong className="font-medium text-fg">a filter you can switch
               off</strong>, not a silent cut: the underlying view applies no threshold, the
               count of what is hidden is always on screen, and every table that shows a Trim
@@ -150,10 +152,10 @@ export default async function AboutPage() {
               hidden to make a ranking look cleaner.
             </p>
             <ProvenancePanel label="Computed over">
-              <span className="figures">{n(trim.rated)}</span> rows of{" "}
+              <span className="figures">{n(trim.rated)}</span>{" "}rows of{" "}
               <code className="figures">v_trim_current</code>. At{" "}
-              <span className="figures">{TRIM_MIN_HEATS}</span> heats the starting prior is
-              still <span className="figures">{formatPriorWeight(priorAtThreshold)}</span> of
+              <span className="figures">{TRIM_MIN_HEATS}</span>{" "}heats the starting prior is
+              still <span className="figures">{formatPriorWeight(priorAtThreshold)}</span>{" "}of
               the rating — the first count at which a surfer&apos;s own record
               outweighs it. The threshold is a presentation choice and is not signed off.
             </ProvenancePanel>
@@ -173,11 +175,11 @@ export default async function AboutPage() {
               status</strong>: a wildcard at their first event and a returning world champion
               start from exactly the same place, and the rating cannot tell you which is
               which. A surfer with four heats is{" "}
-              <span className="figures">{pct(priorAtFour)}</span> starting prior, so their
+              <span className="figures">{pct(priorAtFour)}</span>{" "}starting prior, so their
               Trim says almost nothing about them yet.
             </p>
             <ProvenancePanel label="Computed over">
-              <code className="figures">trim_model_runs</code> — one run, prior{" "}
+              <code className="figures">trim_model_runs</code>{" "}— one run, prior{" "}
               <span className="figures">{formatTrim(num(trimRun?.prior))}</span>, applied to
               every surfer alike. A prior that varies by entry status was specified, deferred,
               and is not in this version.
@@ -192,45 +194,45 @@ export default async function AboutPage() {
         <Card className="p-5 sm:p-6">
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
             <StatLine label="Mean heats per surfer" value={mean1(trim.meanHeats)} size="sm" />
-            <StatLine label="Most" value={n(trim.maxHeats)} unit="heats" size="sm" />
-            <StatLine label="Fewest" value={n(trim.minHeats)} unit="heats" size="sm" />
+            <StatLine label="Most" value={n(trim.maxHeats)} unit={plural(trim.maxHeats ?? 0, "heat")} size="sm" />
+            <StatLine label="Fewest" value={n(trim.minHeats)} unit={plural(trim.minHeats ?? 0, "heat")} size="sm" />
             <StatLine label="Below 10 heats" value={n(trim.belowTen)} unit={`of ${n(trim.rated)}`} size="sm" />
           </div>
-          <p className="mt-5 max-w-3xl text-body-sm leading-relaxed text-fg-muted">
+          <p className="mt-5 max-w-[72ch] text-body-sm leading-relaxed text-fg-muted">
             A rating wants a long record. This one has a mean of{" "}
-            <span className="figures">{mean1(trim.meanHeats)}</span> heats per surfer, and{" "}
-            <span className="figures">{n(trim.belowTen)}</span> of{" "}
-            <span className="figures">{n(trim.rated)}</span> rated surfers sit below ten.
+            <span className="figures">{mean1(trim.meanHeats)}</span>{" "}heats per surfer, and{" "}
+            <span className="figures">{n(trim.belowTen)}</span>{" "}of{" "}
+            <span className="figures">{n(trim.rated)}</span>{" "}rated surfers sit below ten.
             At that size the starting prior and the threshold matter more, not less —
             which is why both are shown on every table rather than folded away into a
             methodology note.
           </p>
-          <p className="mt-3 max-w-3xl text-body-sm leading-relaxed text-fg-muted">
+          <p className="mt-3 max-w-[72ch] text-body-sm leading-relaxed text-fg-muted">
             The recency weighting earns nothing measurable at this size, and the site says so
             rather than implying otherwise. Trim decays older heats with a half-life of{" "}
-            <span className="figures">{n(halfLife)}</span> heats; an undecayed shrunk mean of
+            <span className="figures">{n(halfLife)}</span>{" "}heats; an undecayed shrunk mean of
             the same residuals is indistinguishable from it{" "}
             {rmseTrim != null && rmseShrunk != null && (
               <>
-                (<span className="figures">{rmseTrim.toFixed(4)}</span> against{" "}
+                (<span className="figures">{rmseTrim.toFixed(4)}</span>{" "}against{" "}
                 <span className="figures">{rmseShrunk.toFixed(4)}</span>, paired{" "}
-                <span className="figures">t = {pairedT?.toFixed(3) ?? EM_DASH}</span>)
+                <span className="figures">t = {pairedT != null ? fixed(pairedT, 3) : EM_DASH}</span>)
               </>
             )}
             . Nearly all of Trim&apos;s skill is the prior.
           </p>
           <ProvenancePanel label="Computed over">
-            <code className="figures">trim_model_runs</code> run{" "}
+            <code className="figures">trim_model_runs</code>{" "}run{" "}
             <span className="figures">{trimRun?.spec ?? EM_DASH}</span>, computed{" "}
-            <span className="figures">{trimRun?.computed_on ?? EM_DASH}</span> over{" "}
-            <span className="figures">{n(trimRun?.n_entries)}</span> rated heat entries and{" "}
-            <span className="figures">{n(trimRun?.n_surfers)}</span> surfers, of which{" "}
-            <span className="figures">{n(trimRun?.n_scored)}</span> were scored in the
+            <span className="figures">{trimRun?.computed_on ?? EM_DASH}</span>{" "}over{" "}
+            <span className="figures">{n(trimRun?.n_entries)}</span>{" "}rated heat entries and{" "}
+            <span className="figures">{n(trimRun?.n_surfers)}</span>{" "}surfers, of which{" "}
+            <span className="figures">{n(trimRun?.n_scored)}</span>{" "}were scored in the
             walk-forward test. Against predicting zero for everyone, RMSE{" "}
             <span className="figures">{rmseZero?.toFixed(4) ?? EM_DASH}</span>. The mean above
-            is over the <span className="figures">{n(trim.totalRatedHeats)}</span> heats Trim
+            is over the <span className="figures">{n(trim.totalRatedHeats)}</span>{" "}heats Trim
             actually rests on, not over all{" "}
-            <span className="figures">{n(coverage.entries)}</span> heat entries.
+            <span className="figures">{n(coverage.entries)}</span>{" "}heat entries.
           </ProvenancePanel>
         </Card>
       </section>
@@ -254,17 +256,17 @@ export default async function AboutPage() {
               measurement rather than the other way round.
             </p>
             <ProvenancePanel label="Computed over">
-              <code className="figures">datum_model_runs</code> run{" "}
+              <code className="figures">datum_model_runs</code>{" "}run{" "}
               <span className="figures">{datumRun?.spec ?? EM_DASH}</span>, computed{" "}
-              <span className="figures">{datumRun?.computed_on ?? EM_DASH}</span> over{" "}
-              <span className="figures">{n(datumRun?.n_entries)}</span> entries across{" "}
-              <span className="figures">{n(datumRun?.n_events)}</span> events. Leave-one-event-out
-              RMSE <span className="figures">{datumRmse?.toFixed(4) ?? EM_DASH}</span> against an
+              <span className="figures">{datumRun?.computed_on ?? EM_DASH}</span>{" "}over{" "}
+              <span className="figures">{n(datumRun?.n_entries)}</span>{" "}entries across{" "}
+              <span className="figures">{n(datumRun?.n_events)}</span>{" "}events. Leave-one-event-out
+              RMSE <span className="figures">{datumRmse?.toFixed(4) ?? EM_DASH}</span>{" "}against an
               intercept-only{" "}
               <span className="figures">{datumRmseIntercept?.toFixed(4) ?? EM_DASH}</span>
               {datumR2 != null && (
                 <>
-                  , R² <span className="figures">{datumR2.toFixed(4)}</span> against that intercept
+                  , R² <span className="figures">{datumR2.toFixed(4)}</span>{" "}against that intercept
                 </>
               )}
               .
@@ -276,7 +278,7 @@ export default async function AboutPage() {
             <p className="mt-2 text-body-sm leading-relaxed text-fg-muted">
               How far a surfer beats their Datum, accumulated heat by heat, with recent heats
               weighted more heavily. The unit is points per heat on the 0–20 scale:
-              a Trim of {formatTrim(1)} means roughly one point per heat better than the round
+              a Trim of {formatTrim(1)}{" "}means roughly one point per heat better than the round
               expected. It is a rating, not a prediction, and it is not a ranking —
               the world title is decided by the WSL&apos;s own rules, which this site
               reproduces and never recomputes.
@@ -287,7 +289,7 @@ export default async function AboutPage() {
               stands now.
             </p>
             <ProvenancePanel label="Computed over">
-              <span className="figures">{n(trim.totalRatedHeats)}</span> rated heats, one row
+              <span className="figures">{n(trim.totalRatedHeats)}</span>{" "}rated heats, one row
               per surfer per heat, ordered{" "}
               <span className="figures">{trimRun?.ordering ?? EM_DASH}</span>.
             </ProvenancePanel>
@@ -299,7 +301,7 @@ export default async function AboutPage() {
       <section className="mt-12">
         <SectionHeader kicker="Coverage" title="What is missing" />
         <Card className="p-5 sm:p-6">
-          <p className="mb-5 max-w-3xl text-body-sm leading-relaxed text-fg-muted">
+          <p className="mb-5 max-w-[72ch] text-body-sm leading-relaxed text-fg-muted">
             Not every heat carries every field. Where a figure is absent the site shows an
             em-dash rather than a zero, because an unmeasured heat and a scoreless one are
             different things. These are the populations behind the site&apos;s main figures.
@@ -327,8 +329,8 @@ export default async function AboutPage() {
           </div>
           <ProvenancePanel label="Computed over">
             exact counts against <code className="figures">heats</code>,{" "}
-            <code className="figures">heat_entries</code> and{" "}
-            <code className="figures">waves</code> at render time. Venue is a property of the
+            <code className="figures">heat_entries</code>{" "}and{" "}
+            <code className="figures">waves</code>{" "}at render time. Venue is a property of the
             heat rather than the event, because three events ran at two breaks.
           </ProvenancePanel>
         </Card>
@@ -338,21 +340,22 @@ export default async function AboutPage() {
       <section className="mt-12">
         <SectionHeader kicker="Provenance" title="Where the numbers come from" />
         <Card className="p-5 sm:p-6">
-          <ul className="max-w-3xl space-y-3 text-body-sm leading-relaxed text-fg-muted">
+          <ul className="max-w-[72ch] space-y-3 text-body-sm leading-relaxed text-fg-muted">
             <li>
-              <strong className="font-medium text-fg">One source.</strong> Results, points and
+              <strong className="font-medium text-fg">One source.</strong>{" "}Results, points and
               placings are as published on worldsurfleague.com. Where the published figure and
               a derived one disagree, the published figure wins and the disagreement is
               recorded rather than smoothed over.
             </li>
             <li>
-              <strong className="font-medium text-fg">Published, never inferred.</strong> Season
+              <strong className="font-medium text-fg">Published, never inferred.</strong>{" "}Season
               points are the published points with the published throwaway left out, never
-              reconstructed from finishing positions. A winner is named only where a finishing
-              position of first is published; for regular events it is not, so none is shown.
+              reconstructed from finishing positions. A winner is named only where WSL publishes
+              first place: the event placing for regular events, and the finishing position for
+              the WSL Finals. No winner is worked out from the final heat.
             </li>
             <li>
-              <strong className="font-medium text-fg">Every row keeps its receipt.</strong> Each
+              <strong className="font-medium text-fg">Every row keeps its receipt.</strong>{" "}Each
               row records the retrieved page it came from, and those pages are kept, so any
               figure here can be traced back to the bytes it was read from.
             </li>
@@ -370,7 +373,7 @@ export default async function AboutPage() {
       <section className="mt-12">
         <SectionHeader kicker="Scope" title="What this is not" />
         <Card className="p-5 sm:p-6">
-          <ul className="max-w-3xl space-y-3 text-body-sm leading-relaxed text-fg-muted">
+          <ul className="max-w-[72ch] space-y-3 text-body-sm leading-relaxed text-fg-muted">
             <li>
               Not affiliated with, endorsed by, or connected to the World Surf League. An
               independent project.

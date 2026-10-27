@@ -189,7 +189,10 @@ events:
     results_url: https://www.worldsurfleague.com/events/2024/ct/205/lexus-wsl-finals/results
     note: >
       Reallocates the top five ranking positions rather than awarding points.
-      Final Match is best of three heats.
+      Final Match is best of three heats (rulebook 1.06(e)(iv), 2024 edition).
+      Surfed: John John Florence won it 2-0 over two heats, 15.50-15.33 and
+      18.13-16.30 (retained results page series block, "J. Florence Wins 2 - 0";
+      heats 102841 and 102842). No Heat 1 rule is printed on the 2024 page.
 
 # ---------------------------------------------------------------------------
 # Expected values — consumed directly by the audit suite

@@ -11,6 +11,7 @@ It covers two complete seasons, 2024 and 2025 (results up to 4 September 2025): 
 - **Rankings:** each season as WSL published it, with each surfer's dropped result left out, and the WSL Finals order that decides the title.
 - **Surfer pages:** the heat-by-heat record, scores against the round's typical score, and splits by wave height and wind.
 - **Event pages:** the draw, every heat, and how each surfer's Trim moved at that event.
+- **Events and Surfers:** every event by season with its winner and a link to WSL's official results, and every surfer with Trim and its range.
 - **Compare:** two surfers side by side, with every figure showing the number of heats behind it.
 - **Trim:** the rating method, and what it cannot tell you.
 
@@ -18,7 +19,7 @@ It covers two complete seasons, 2024 and 2025 (results up to 4 September 2025): 
 
 **Datum** is the score a typical Championship Tour surfer posts in a given round. Scores rise through an event, from about 10.7 in an Opening Round heat to about 14.5 in a Final. A raw average therefore flatters surfers who reach late rounds, so every heat score here is also shown against Datum. Fitting and validation are in `scripts/compute_datum.py`, using leave-one-event-out and leave-one-season-out tests.
 
-**Trim** is a surfer's recent scoring against Datum, weighted so a heat from 15 heats ago counts half as much as the latest one. It describes form. It does **not** reliably predict the next heat. In a walk-forward test over 1,770 heats, its error (RMSE 2.910) is statistically indistinguishable from a flat average of the same residuals (2.913, paired t = 0.54). The site says so.
+**Trim** is a surfer's recent scoring against Datum, weighted so a heat from 15 heats ago counts half as much as the latest one. It describes form, and every figure is shown with a 95% range (about ±0.87 for a full record). It does **not** reliably predict the next heat. In a walk-forward test over 1,770 heats, its error (RMSE 2.910) is statistically indistinguishable from a flat average of the same residuals (2.913, paired t = 0.54). The site says so.
 
 ## How the data was built
 

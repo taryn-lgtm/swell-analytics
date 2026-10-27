@@ -52,7 +52,7 @@ export interface RankingRow {
   /** The explicit champion field. */
   champion: boolean;
   /** Latest Trim per surfer from v_trim_current -- the same figure `/` shows. */
-  trim: Pick<TrimCurrentRow, "trim" | "nHeats" | "priorWeight"> | null;
+  trim: Pick<TrimCurrentRow, "trim" | "nHeats" | "priorWeight" | "halfWidth"> | null;
 }
 
 export interface SeasonRankings {
@@ -182,7 +182,7 @@ export const getSeasonRankings = cache(async (seasonYear: number): Promise<Seaso
       eventsNotCounted: a.notCounted,
       finalsPlacing: finalsPlacing.get(surferId) ?? null,
       champion: season.world_champion_surfer_id === surferId,
-      trim: t ? { trim: t.trim, nHeats: t.nHeats, priorWeight: t.priorWeight } : null,
+      trim: t ? { trim: t.trim, nHeats: t.nHeats, priorWeight: t.priorWeight, halfWidth: t.halfWidth } : null,
     });
   }
   rows.sort((a, b) => b.points - a.points || a.fullName.localeCompare(b.fullName));

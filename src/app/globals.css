@@ -82,7 +82,8 @@
   --text-body--line-height: 1.6;
   --text-body-sm: 0.8125rem;
   --text-body-sm--line-height: 1.5;
-  --text-caption: 0.6875rem;
+  /* 12px floor for all captions, raised from 11px by the 17 October audit. */
+  --text-caption: 0.75rem;
   --text-caption--line-height: 1.45;
   --text-stat: 0.8125rem;
   --text-stat--line-height: 1.4;
@@ -213,6 +214,43 @@ body {
   background: var(--color-paper);
   color: var(--color-fg);
   font-family: var(--font-sans);
+}
+
+/* Links that sit in running text are underlined at rest, not on hover only:
+   colour alone cannot carry them (WCAG 1.4.1; axe link-in-text-block, 17 Oct
+   2026 audit). Unlayered, so a utility's hover-only underline cannot undo it.
+   Tables and lists keep their hover underline. */
+a.text-link,
+main p a {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+/* Prose measure. Running text is capped at about 72 characters a line; at
+   1440 the uncapped captions reached 171ch. In the base layer, so a
+   paragraph's own max-w utility still wins. */
+@layer base {
+  /* Flex and grid paragraphs are layout rows (a label left, a figure
+     right), not running text, so they keep their full width. */
+  main p:not(.flex):not(.grid) {
+    max-width: 72ch;
+  }
+}
+
+/* Skip link: off-screen until focused, then the first thing on the page. */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 100;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 0.5rem;
 }
 
 /* ALL numeric data (points, scores, ranks, heights) reads in the figures face.

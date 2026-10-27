@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { fixed, MINUS } from "@/lib/format";
 
 /*
  * The /trim explainer, ported from the Swell concept. All figures arrive as
@@ -62,9 +63,9 @@ const ABOVE = "var(--above)";
 const BELOW = "var(--below)";
 /** SVG coordinates to 0.01: Math.pow differs in the last bit between server and browser, which breaks hydration. */
 const px = (v: number) => Math.round(v * 100) / 100;
-const f2 = (v: number) => v.toFixed(2);
-const f3 = (v: number) => (v < 0 ? "−" : "") + Math.abs(v).toFixed(3);
-const s2 = (v: number) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(2);
+const f2 = (v: number) => fixed(v, 2);
+const f3 = (v: number) => fixed(v, 3);
+const s2 = (v: number) => (v > 0 ? "+" : v < 0 ? MINUS : "") + Math.abs(v).toFixed(2);
 const ord = (n: number) => {
   const t = n % 100;
   const suffix = t > 10 && t < 14 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th");
@@ -347,9 +348,9 @@ export default function TrimExplainer({
         </h1>
         <p className="mt-6 max-w-[62ch] text-[1.1rem] leading-relaxed text-fg-muted">
           Every CT heat ends with a number. Trim asks a better question of it:{" "}
-          <B>was that more or less than a surfer normally posts in that round?</B> Below, every heat{" "}
+          <B>was that more or less than a surfer normally posts in that round?</B>{" "}Below, every heat{" "}
           {surferName} surfed in 2024 and 2025 lands against that expectation, and the gap pours into
-          his Trim.
+          his Trim. The bar is set by the round alone, not by the break or the conditions.
         </p>
         <div className="mt-10 grid gap-4 sm:grid-cols-[minmax(0,1fr)_150px] sm:gap-6">
           <div>
@@ -364,8 +365,8 @@ export default function TrimExplainer({
         {pair && (
           <>
             <p>
-              {last} posted <B>{f2(pair.a.posted)}</B> in the {pair.a.round.toLowerCase()} of the {pair.a.event}{" "}
-              {pair.a.year} and <B>{f2(pair.b.posted)}</B> in the {pair.b.round.toLowerCase()} of the {pair.b.event}{" "}
+              {last} posted <B>{f2(pair.a.posted)}</B>{" "}in the {pair.a.round.toLowerCase()} of the {pair.a.event}{" "}
+              {pair.a.year} and <B>{f2(pair.b.posted)}</B>{" "}in the {pair.b.round.toLowerCase()} of the {pair.b.event}{" "}
               {pair.b.year}. Almost the same number. The first was a big score for its round; the second was{" "}
               {pair.b.gap < 0 ? "just under" : "just over"} what that round normally takes.
             </p>
@@ -393,7 +394,7 @@ export default function TrimExplainer({
 
       <Section k="2 · Datum" title={`Datum rises from ${f2(datum[first])} to ${f2(datum.Final ?? datum[rounds[rounds.length - 1]])}.`}>
         <p>
-          <B>Datum</B> is what a typical CT surfer posts in that round, worked out from every heat of 2024
+          <B>Datum</B>{" "}is what a typical CT surfer posts in that round, worked out from every heat of 2024
           and 2025. It rises as the field thins and the waves get chosen more carefully.
         </p>
         <ol className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,104px),1fr))] border-t border-fg">
@@ -416,12 +417,12 @@ export default function TrimExplainer({
 
       <Section k="3 · The gap" title="The gap is posted minus Datum." alt>
         <p>
-          Take the posted total and subtract Datum. That gap is the whole idea: <Up>yellow</Up> when a
-          surfer beat what the round normally produces, <Down>blue</Down> when he fell short. It&apos;s
+          Take the posted total and subtract Datum. That gap is the whole idea: <Up>yellow</Up>{" "}when a
+          surfer beat what the round normally produces, <Down>blue</Down>{" "}when he fell short. It&apos;s
           the same measure whether it&apos;s a Pipe opening round or a WSL Finals title match.
         </p>
         <p>
-          Across his {N} heats, {last} finished above the line in <B>{above}</B> and below it in{" "}
+          Across his {N} heats, {last} finished above the line in <B>{above}</B>{" "}and below it in{" "}
           <B>{N - above}</B>.
         </p>
         <div className="border-t border-fg pt-4">
@@ -478,7 +479,7 @@ export default function TrimExplainer({
           Trim adds up the gaps, but not equally. Each new heat counts for <B>{(alpha * 100).toFixed(1)}%</B>,
           and everything before it shrinks a little to make room. A heat&apos;s weight halves roughly every{" "}
           <B>{Math.round(half)} heats</B>. Every surfer starts at zero, and that starting point fades too:
-          after {N} heats it holds just <B>{(priorWeight * 100).toFixed(1)}%</B> of {last}&apos;s rating,
+          after {N} heats it holds just <B>{(priorWeight * 100).toFixed(1)}%</B>{" "}of {last}&apos;s rating,
           which is why he can be rated with confidence and a rookie can&apos;t yet. His Trim today is{" "}
           <Up>{f3(trimNow)}</Up>.
         </p>
@@ -491,7 +492,7 @@ export default function TrimExplainer({
             , starting from <code>0</code>.
           </p>
           <p>
-            So a heat surfed <i>k</i> heats ago counts{" "}
+            So a heat surfed <i>k</i>{" "}heats ago counts{" "}
             <code>
               {alpha.toFixed(4)} × {(1 - alpha).toFixed(4)}
               <sup>k</sup>
@@ -501,7 +502,7 @@ export default function TrimExplainer({
               {(1 - alpha).toFixed(4)}
               <sup>n</sup>
             </code>{" "}
-            after <i>n</i> heats. That last figure is the &quot;prior weight&quot; shown beside every rating.
+            after <i>n</i>{" "}heats. That last figure is the &quot;prior weight&quot; shown beside every rating.
             The rate is the same for every surfer.
           </p>
         </Maths>
@@ -517,9 +518,9 @@ export default function TrimExplainer({
           </p>
           <p>
             Take the {n} rated surfers who surfed every {scatterSeason} event and rank them twice: by{" "}
-            {scatterSeason} points, and by Trim. On the dashed line the two agree. <B>{sc.up.name}</B> is{" "}
+            {scatterSeason} points, and by Trim. On the dashed line the two agree. <B>{sc.up.name}</B>{" "}is{" "}
             {ord(sc.up.p)} on points but {ord(sc.up.t)} on Trim: his heats were better than his results.{" "}
-            <B>{sc.dn.name}</B> is the opposite, {ord(sc.dn.p)} on points and {ord(sc.dn.t)} on Trim. Trim
+            <B>{sc.dn.name}</B>{" "}is the opposite, {ord(sc.dn.p)} on points and {ord(sc.dn.t)} on Trim. Trim
             covers both seasons, so it also carries 2024 form.
           </p>
           <Scatter pts={sc.pts} out={sc.out} season={scatterSeason} />
@@ -528,17 +529,21 @@ export default function TrimExplainer({
 
       <Section k="6 · What it unlocks" title="What Trim makes possible.">
         <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-x-8 border-t border-hairline">
+          {/* Each item says whether it is on the site now or planned, so a feature
+              list never reads as shipped when it isn't (WSL-analyst audit P1-3). */}
           {[
-            ["Form", "His last ten heats against his own average. Hot, warm, steady, cooling or cold."],
-            ["Momentum", "Which way his Trim has moved lately, and how fast."],
-            ["Conditions", "His gap by the wave height and wind WSL published for each heat."],
-            ["Late rounds", "Does he lift from the quarterfinals on, or fade?"],
-            ["Head-to-head", "A forecast for any two surfers, stored with its inputs and checked in public."],
-            ["The whole field", "Every season as a ridgeline, so a run of form shows at a glance."],
-          ].map(([t, d]) => (
+            ["Conditions", "On every surfer page: his gap by the wave height and wind WSL published for each heat.", "On the site"],
+            ["The whole field", "On the home page: every surfer as a ridgeline, so a run of form shows at a glance.", "On the site"],
+            ["Head-to-head records", "On Compare: how two surfers did when they met, and against Datum.", "On the site"],
+            ["Form", "His last ten heats against his own average.", "Planned"],
+            ["Momentum", "Which way his Trim has moved lately, and how fast.", "Planned"],
+            ["Late rounds", "Does he lift from the quarterfinals on, or fade?", "Planned"],
+            ["Head-to-head forecasts", "A win chance for any two surfers, stored before the heat and scored after it.", "Planned"],
+          ].map(([t, d, status]) => (
             <li key={t} className="border-b border-hairline py-4">
               <b className="block text-heading font-semibold text-fg">{t}</b>
-              <span className="text-body-sm text-fg-muted">{d}</span>
+              <span className="text-caption text-fg-subtle">{status}</span>
+              <span className="block text-body-sm text-fg-muted">{d}</span>
             </li>
           ))}
         </ul>
@@ -550,7 +555,9 @@ export default function TrimExplainer({
             ["It doesn’t know which way the wave broke.", "WSL doesn’t publish wave direction for ocean events, so a natural-footer and a goofy-footer at the same break are treated alike."],
             ["It doesn’t model individual judges.", "It works from heat totals, which already include the judging."],
             ["It doesn’t know who you were up against.", "Datum is the round’s line, not your opponent’s. Head-to-head forecasts handle the matchup separately."],
-            ["Its forecasting edge is small.", "Tested on 2025 heats it hadn’t been fitted to, the head-to-head model picked the winner 57.9% of the time against 50% for a coin flip. Real, but modest, and every live forecast is stored and checked in public."],
+            // 57.9% of 297 heats is from scripts/backtest_forecasts.sql (8 Oct 2026);
+            // the interval is the normal approximation, 1.96 x sqrt(p(1-p)/n).
+            ["Its forecasting edge is small, and not fully tested.", "On 297 heats from 2025, a head-to-head model built on Trim picked the winner 57.9% of the time, against 50% for a coin flip. With that many heats, the true figure could be anywhere from about 52% to 64%. And it flatters the model, because Datum and Trim were fitted on 2025 as well as 2024. As a predictor of the next heat score, Trim barely beats a plain average. Forecasts aren’t shown on the site yet."],
             ["New surfers need time.", "With few heats, most of a rating is still the starting zero. That’s why the main tables only rank surfers with 16 or more heats."],
           ].map(([a, b]) => (
             <li key={a} className="border-b border-hairline py-4">
