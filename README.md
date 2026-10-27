@@ -4,7 +4,7 @@ An independent analytics site for the World Surf League men's Championship Tour,
 
 **Live site:** https://wsl-analytics.vercel.app
 
-It covers two complete seasons, 2024 and 2025 (results up to 4 September 2025): 22 events, 800 heats, 1,852 heat entries and 10,379 scored rides across 73 surfers. It is not affiliated with or endorsed by the World Surf League. The results data belongs to the WSL.
+It covers two complete seasons, 2024 and 2025 (results up to 4 September 2025): 22 events, 801 heats, 1,854 heat entries and 10,389 scored rides across 73 surfers. It is not affiliated with or endorsed by the World Surf League. The results data belongs to the WSL.
 
 ## What it shows
 
@@ -19,7 +19,7 @@ It covers two complete seasons, 2024 and 2025 (results up to 4 September 2025): 
 
 **Datum** is the score a typical Championship Tour surfer posts in a given round. Scores rise through an event, from about 10.7 in an Opening Round heat to about 14.5 in a Final. A raw average therefore flatters surfers who reach late rounds, so every heat score here is also shown against Datum. Fitting and validation are in `scripts/compute_datum.py`, using leave-one-event-out and leave-one-season-out tests.
 
-**Trim** is a surfer's recent scoring against Datum, weighted so a heat from 15 heats ago counts half as much as the latest one. It describes form, and every figure is shown with a 95% range (about ±0.87 for a full record). It does **not** reliably predict the next heat. In a walk-forward test over 1,770 heats, its error (RMSE 2.910) is statistically indistinguishable from a flat average of the same residuals (2.913, paired t = 0.54). The site says so.
+**Trim** is a surfer's recent scoring against Datum, weighted so a heat from 15 heats ago counts half as much as the latest one. It describes form, and every figure is shown with a 95% range (about ±0.87 for a full record). It does **not** reliably predict the next heat. In a walk-forward test over 1,772 heats, its error (RMSE 2.910) is statistically indistinguishable from a flat average of the same residuals (2.912, paired t = 0.56). The site says so.
 
 ## How the data was built
 
