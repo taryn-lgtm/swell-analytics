@@ -2,7 +2,7 @@
 
 An independent analytics site for the World Surf League men's Championship Tour, built from published heat results.
 
-**Live site:** https://wsl-analytics.vercel.app
+**Live site:** https://www.swell-analytics.com
 
 It covers two complete seasons, 2024 and 2025 (results up to 4 September 2025): 22 events, 801 heats, 1,854 heat entries and 10,389 scored rides across 73 surfers. It is not affiliated with or endorsed by the World Surf League. The results data belongs to the WSL.
 
